@@ -2,7 +2,6 @@ import numpy as np
 import matlab.engine
 import random
 import os
-# import MorrisMethod as MM
 random.seed(10)
 
 
@@ -30,7 +29,6 @@ def log_dist_k_set():
 def uni_dist_k_set(index1, index2): # , index3):
     uni_distr = np.linspace(1, 10, n_trainSet)
     #log_distr = np.logspace(-1, 1, n_trainSet, base = 10.) # 2 orders of magnitude [0.1-10]
-    
     list=[]
     for item in k:
         list.append(np.full(n_trainSet, item ))   
