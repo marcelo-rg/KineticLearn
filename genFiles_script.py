@@ -5,97 +5,6 @@ import os
 random.seed(10)
 
 
-
-def log_dist_k_set():
-
-    log_distr = np.logspace(-1, 1, n_trainSet, base = 10.) # 2 orders of magnitude [0.1-10]
-
-    k1 = log_distr*k[0]
-    k_previous = k1
-
-    for i in range(1, k.size, 1): #range(start, stop, step)
-        ki = log_distr*k[i]  
-        k_set =  np.vstack((k_previous,ki))
-        k_previous = k_set
-
-    if(randOn):
-        for _ in k_set:
-            random.shuffle(_)
-
-    return np.transpose(k_set)
-
-#------------------------------------------------------------
-
-def uni_dist_k_set(index1, index2): # , index3):
-    uni_distr = np.linspace(1, 10, n_trainSet)
-    #log_distr = np.logspace(-1, 1, n_trainSet, base = 10.) # 2 orders of magnitude [0.1-10]
-    list=[]
-    for item in k:
-        list.append(np.full(n_trainSet, item ))   
-    
-    array = np.array(list) # pass to array
-
-    array[index1]  =  uni_distr*k[index1]
-    array[index2]  =  uni_distr*k[index2]
-    #array[index3]  =  uni_distr*k[index3]
-
-    # k1 = uni_distr*k[0]
-    # k_previous = k1
-
-    # for i in range(1, k.size, 1): #range(start, stop, step)
-    #     ki = uni_distr*k[i]  
-    #     k_set =  np.vstack((k_previous,ki))
-    #     k_previous = k_set
-
-    if(randOn):
-        for _ in array:
-            random.shuffle(_)
-
-    return np.transpose(array)
-
-#------------------------------------------------------------------------
-
-def uni_dist_k_set_full():
-    k1 = np.linspace(k[0], k[0]*2, n_trainSet)
-    k_previous = k1
-
-    for i in range(1, k.size, 1): #range(start, stop, step)
-        ki = np.linspace(k[i], k[i]*10, n_trainSet)   
-
-        k_set =  np.vstack((k_previous,ki))
-        k_previous = k_set
-
-    if(randOn):
-        for _ in k_set:
-            random.shuffle(_)
-
-    return np.transpose(k_set)
-
-#------------------------------------------------------------------------
-
-def uni_dist_k_set_mesh(index1, index2):
-    uni_distr = np.linspace(1, 10, n_trainSet)
-    
-    list=[]
-    for item in k:
-        list.append(np.full(n_trainSet**2, item ))   
-    
-    array = np.array(list) # pass to array
-
-    k1 = uni_distr*k[index1]
-    k2 =  uni_distr*k[index2]
-
-    K1, K2 = np.meshgrid(k1,k2)
-
-    array[index1] = K1.flatten()
-    array[index2] = K2.flatten()
-
-    if(randOn):
-        for _ in array:
-            random.shuffle(_)
-
-    return np.transpose(array)
-
 #-----------------------------------------------------------------------------------------------------
 def random_kset(index1, index2, index3): #, index3, index4, index5, index6, index7):
     k_range = 10
@@ -114,38 +23,43 @@ def random_kset(index1, index2, index3): #, index3, index4, index5, index6, inde
     array_constant[index1]  =  array_random[index1]*k[index1]
     array_constant[index2]  =  array_random[index2]*k[index2] 
     array_constant[index3]  =  array_random[index3]*k[index3]
-    # array_constant[index4]  =  array_random[index4]*k[index4]
-    # array_constant[index5]  =  array_random[index5]*k[index5]
-    # array_constant[index6]  =  array_random[index6]*k[index6]
-    # array_constant[index7]  =  array_random[index7]*k[index7]
+
     return np.transpose(array_constant)
 
 #-----------------------------------------------------------------------------------------------------
-def random_kset_full(n_simulations):
-    k_range = 10
+
+class Parameters():
+    def __init__(self, k ,npoints = 10, krange=[1,10]):
+        self.n_points = npoints
+        self.k = k
+        self.krange = krange
+        self.pressure = None
+        self.temp = None
+
+        # output
+        self.k_set = None
+        self.pressure_set = None
     
-    list=[]
-    array_random = np.random.uniform(1,10, size = (k.size, n_simulations))
-    for (idx, item) in enumerate(k):
-        list.append(array_random[idx]*item)
+    def random_kset(self,kcolumns = None): 
+
+        array_random = np.random.uniform(self.krange[0], self.krange[1], size = (k.size, self.n_points))
+        
+        if kcolumns is None:
+            # use all colunms
+            kcolumns = np.arange(k.size)
+        else:
+            # create an k_set full of the constant values in k
+            self.k_set = np.full((self.n_points, k.size), self.k)
+
+        for (idx, item) in enumerate(kcolumns):
+            self.k_set[:,item] = array_random[idx]*self.k[item]
 
 
-    # array_constant[index5]  =  array_random[index5]*k[index5]
-    # array_constant[index6]  =  array_random[index6]*k[index6]
-    # array_constant[index7]  =  array_random[index7]*k[index7]
-    return np.transpose(list)
+    
+    def set_npoints(self, npoints):
+        self.n_points = npoints
 
-
-
-"""
-to_plot = k_set[:,0]
-#plt.hist(to_plot, bins=50, edgecolor='black')
-print(to_plot)
-
-plt.plot(np.arange(0,len(to_plot),1), to_plot)
-plt.style.use('seaborn-white')
-plt.show()
-exit()"""
+    
 
 
 def runSimulations(k_set, filename = 'datapoints.txt'):
@@ -266,15 +180,24 @@ def runSimulations(k_set, filename = 'datapoints.txt'):
 if __name__ == '__main__':
     # Definition of scheme 
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
+    k_columns = [0,1,2] # if none change all rate coefficients
     n_react = k.size
-    n_trainSet = 10
+    n_trainSet = 4
     randOn = True
 
     # Create training dataset
     k_set_training = random_kset(0,1,2)
-    # k_set = MM.Morris(k, indexes= (0,2,3))
-    print("k_set lenght: ", len(k_set_training))
-    runSimulations(k_set_training)
+    # print("k_set lenght: ", len(k_set_training))
+
+    parameters = Parameters(k, npoints=n_trainSet, krange=[1,10])
+    parameters.random_kset(k_columns)
+
+    # test if parameters.k_set is equal to k_set_training
+    print("k_set_training: ", k_set_training)
+    print("parameters.k_set: ", parameters.k_set)
+
+    # runSimulations(k_set_training)
+    # writeDataFiles(n_trainSet)
 
     # # Create test dataset
     # n_trainSet = 10
