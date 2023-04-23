@@ -48,7 +48,7 @@ class Simulations():
     def runSimulations(self):
         #------------------Generate the Chemistry + SetUp files--------------------------#
         if self.parameters.k_set is None:
-            print('\nError: k_set is not defined. Please use the random_kset method for example')
+            print('\nError: k_set is not defined. Please use the random_kset method, for example')
             exit()
         # Read in the example files
         with open(self.cwd + '\\O2_simple_1.chem', 'r') as file :
@@ -103,6 +103,9 @@ class Simulations():
 
 
         #--------------------------------------Run the matlab script-------------------------------------------------------------------
+        outfile = open(self.loki_path + "\\n_simulations.txt", 'w')
+        outfile.write(str(self.nsimulations))
+        outfile.close()
         os.chdir(self.loki_path+ "\\Code") # First change the working directory so that the relatives paths of loki work
         eng = matlab.engine.start_matlab()
         s = eng.genpath(self.loki_path)
@@ -148,9 +151,12 @@ class Simulations():
                 file.write('  ')
                 file.write('  '.join( "{:.12E}".format(float(item)) for item in densitie_line)+'\n')
 
+    def set_nsimulations(self, n):
+        self.nsimulations = n
+        self.parameters.set_npoints(n)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': 
 
     # path to LoKI
     loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
@@ -159,13 +165,18 @@ if __name__ == '__main__':
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # if none, changes all rate coefficients
-    n_react = k.size
-    n_trainSet = 10
+    n_trainSet = 5
 
-    simul = Simulations(loki_path, k, n_trainSet, krange=[1,10])
-    # Create training k's dataset
+    simul = Simulations(loki_path, k, npoints= n_trainSet, krange=[1,10])
     simul.parameters.random_kset(k_columns) # compress this function into the class
 
     # Run simulations
     simul.runSimulations()
     simul.writeDataFile(species, filename='datapoints.txt')
+
+    # Create a test set
+    # n_testSet = 10
+    # simul.set_nsimulations(n_testSet)
+    # simul.parameters.random_kset(k_columns, n_testSet)
+    # simul.runSimulations()
+    # simul.writeDataFile(species, filename='datapoints_test.txt')
