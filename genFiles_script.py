@@ -53,62 +53,57 @@ class Simulations():
 
         self.replace_k = True
 
+    # Compress Parameters methods
     def random_kset(self,kcolumns = None): 
         self.parameters.random_kset(kcolumns)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
 
-
-    def runSimulations(self):
-        #------------------Generate the Chemistry + SetUp files--------------------------#
+    # Private methods
+    def _generateChemFiles(self):
         if self.parameters.k_set is None:
             print('\nError: k_set is not defined. Please use the random_kset method, for example')
             exit()
-        # Read in the example files
-        with open(self.cwd + '\\O2_simple_1.chem', 'r') as file :
+
+        # Read in the example file
+        with open(self.cwd + '\\O2_simple_1.chem', 'r') as file :  
             lines = []
             for line in file:
                 lines.append(line.strip())
             chemFiledata = lines
 
-
-        with open(self.cwd + '\\setup_O2_simple.in', 'r') as file :
-            setup_data = file.read() # (for the setup files we dont need to separate the string in lines)
-
         list_out = []
-        # First substitution: replace the values of array k
-        for i in range(len(self.parameters.k_set[0])): 
-            # Replace the target string
-            line = chemFiledata[i].split()
-            line[-2] = "{:.4E}".format(self.parameters.k_set[0][i])
-            list_out.append('  '.join(line))
-
-
-        # Write the out chem file data again
-        outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1_0.chem', 'w')
-        outfile.write("\n".join(list_out))
-
-        # First substitution of the SetUp file
-        setup_data = setup_data.replace('O2_simple_1.chem', 'O2_simple_1_0.chem') # change the name of the chem file to read
-        setup_data = setup_data.replace('OxygenSimplified_1', 'OxygenSimplified_1_0') # change the name of the output folder
-        outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\setup_O2_simple_0.in', 'w')
-        outfile.write(setup_data)
-
-        # Then replace for all self.parameters.k_set
-        for j in range (1, len(self.parameters.k_set), 1): # for each datapoint 
+        # Replace for all self.parameters.k_set
+        for j in range (0, len(self.parameters.k_set), 1): # for each datapoint 
             list_out = []
             for i in range(len(self.parameters.k_set[j])): # for each k (for each line in file)
-                # Replace the target string
-                line = chemFiledata[i].split()
-                line[-2] = "{:.4E}".format(self.parameters.k_set[j][i])
-                list_out.append('  '.join(line))
+                line = chemFiledata[i]
+                # Replace the target string that follows "| constantRateCoeff | " by the value of k using regular expressions
+                line = re.sub(r'\d+.\d+', "{:.4f}".format(self.parameters.k_set[j][i]), line)
 
             # Write the out chem file 
             outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1_' +str(j)+'.chem', 'w')
             outfile.write("\n".join(list_out))
             outfile.close()
 
+        
+        # First substitution: replace the values of array k
+
+    def _generateSetupFiles():
+        pass
+
+
+
+    def runSimulations(self):
+        #------------------Generate the Chemistry + SetUp files--------------------------#
+        self._generateChemFiles()
+
+
+        # Then replace for all self.parameters.k_set
+        for j in range (1, len(self.parameters.k_set), 1): # for each datapoint 
+
+        #-----------------------------------------------------------------------------#
             # replace the name of the chem file to read and the name of the output folder
             setup_data = setup_data.replace('O2_simple_1_' +str(j-1)+'.chem', 'O2_simple_1_' +str(j)+'.chem') #replace chem file name to read
             setup_data = setup_data.replace('OxygenSimplified_1_' +str(j-1), 'OxygenSimplified_1_' +str(j)) #replace output folder name
@@ -120,6 +115,8 @@ class Simulations():
             outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\setup_O2_simple_' +str(j)+'.in', 'w') 
             outfile.write(setup_data)
             outfile.close()
+        
+        exit()
 
 
 
