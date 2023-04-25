@@ -109,9 +109,8 @@ class Simulations():
         
         # Then replace for all self.parameters 
         for j in range (0, self.nsimulations, 1): 
-            # replace the name of the chem file to read and the name of the output folder
-            setup_data = setup_data.replace('O2_simple_1_' +str(j-1)+'.chem', 'O2_simple_1_' +str(j)+'.chem') #replace chem file name to read
-            setup_data = setup_data.replace('OxygenSimplified_1_' +str(j-1), 'OxygenSimplified_1_' +str(j)) #replace output folder name
+            setup_data = re.sub(r'O2_simple(\S+)', 'O2_simple_1_' +str(j)+ '.chem', setup_data) #replace output file name
+            setup_data = re.sub(r'folder:+\s+(\S+)', 'folder: OxygenSimplified_1_' +str(j), setup_data) #replace output folder name
 
             if self.parameters.pressure_set is not None:
                 # replace the pressure value in the setup file, that follows the string "gasPressure: "
@@ -137,7 +136,6 @@ class Simulations():
         def readFile(file_address):
             with open(file_address, 'r') as file :
                 filedata = file.readlines()
-
             list=[]
             s = 0
             for line in filedata:
@@ -171,16 +169,14 @@ class Simulations():
         s = eng.genpath(self.loki_path)
         eng.addpath(s, nargout=0) # add loki code folder to search path of matlab
         eng.loki_loop(nargout=0)  # run the matlab script
-        exit()
+
 
 
 
     def writeDataFile(self, species, filename = 'datapoints.txt'):
 
         densities = self._read_otpt_densities(species)
-        # [Chamar mais metodos para ler variaveis de outros ficheiros de output]
         # electricCurrent = ...
-
 
         dir = self.cwd + '\\Data\\'
         if not os.path.exists(dir):
@@ -193,6 +189,12 @@ class Simulations():
                 k_line = self.parameters.k_set[i]
                 densitie_line = densities[i]
 
+                # write the pressure and radius values
+                file.write("{:.4E}".format(self.parameters.pressure_set[i]))
+                file.write('  ')
+                file.write("{:.4E}".format(self.parameters.radius_set[i]))
+                file.write('  ')
+                # write the k and densities values
                 file.write('  '.join( "{:.12E}".format(item) for item in k_line))
                 file.write('  ')
                 file.write('  '.join( "{:.12E}".format(float(item)) for item in densitie_line)+'\n')
@@ -220,13 +222,13 @@ if __name__ == '__main__':
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 5
+    n_simulations = 100
 
     simul = Simulations(loki_path, k, n_simulations)
     simul.random_kset(k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
-    simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
+    # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
 
     # Run simulations
     simul.runSimulations()
