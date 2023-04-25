@@ -3,6 +3,7 @@ import matlab.engine
 import random
 import os
 random.seed(10)
+# import re
 
 #-----------------------------------------------------------------------------------------------------
 
@@ -16,7 +17,7 @@ class Parameters():
 
         # protect these variables
         self.k_set = None
-        self._pressure_set = None
+        self.pressure_set = None
     
     def random_kset(self,kcolumns = None): 
 
@@ -31,6 +32,10 @@ class Parameters():
 
         for (idx, item) in enumerate(kcolumns):
             self.k_set[:,item] = array_random[idx]*self.k[item]
+    
+    def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
+        self.pressure_set = pressure*np.random.uniform(pressure_range[0], pressure_range[1], size = self.n_points)
+
 
     
     def set_npoints(self, npoints):
@@ -96,6 +101,8 @@ class Simulations():
             # Write out the setUp files
             setup_data = setup_data.replace('O2_simple_1_' +str(j-1)+'.chem', 'O2_simple_1_' +str(j)+'.chem') #replace chem file name to read
             setup_data = setup_data.replace('OxygenSimplified_1_' +str(j-1), 'OxygenSimplified_1_' +str(j)) #replace output folder name
+            # replace the pressure value in the setup file, that follows the string "gasPressure: "
+            # setup_data = re.sub(r'gasPressure: \d+.\d+', 'gasPressure: ' + str(self.parameters.pressure_set[j]), setup_data)
             outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\setup_O2_simple_' +str(j)+'.in', 'w') 
             outfile.write(setup_data)
             outfile.close()
@@ -165,14 +172,20 @@ if __name__ == '__main__':
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # if none, changes all rate coefficients
-    n_trainSet = 5
+    n_trainSet = 500
 
-    simul = Simulations(loki_path, k, npoints= n_trainSet, krange=[1,10])
+    simul = Simulations(loki_path, k, n_trainSet, krange=[1,10])
     simul.parameters.random_kset(k_columns) # compress this function into the class
 
     # Run simulations
     simul.runSimulations()
     simul.writeDataFile(species, filename='datapoints.txt')
+
+    # run the matlab script
+    eng = matlab.engine.start_matlab()
+
+    # read file "dataponits.txt" and capture value after "pressure: "
+    
 
     # Create a test set
     # n_testSet = 10
