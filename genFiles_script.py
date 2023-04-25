@@ -7,9 +7,8 @@ np.random.seed(10) # Recover reproducibility
 #-----------------------------------------------------------------------------------------------------
 
 class Parameters():
-    def __init__(self, k ,npoints):
+    def __init__(self, npoints):
         self.n_points = npoints
-        self.k = k
 
         # Set of parameters
         self.k_set = None
@@ -18,7 +17,7 @@ class Parameters():
         self.electDensity_set  = None
     
     # protect these methods
-    def random_kset(self,kcolumns = None, krange= [1,10]): 
+    def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
 
         array_random = np.random.uniform(krange[0], krange[1], size = (k.size, self.n_points))
         
@@ -27,10 +26,10 @@ class Parameters():
             kcolumns = np.arange(k.size)
         else:
             # create an k_set full of the constant values in k
-            self.k_set = np.full((self.n_points, k.size), self.k)
+            self.k_set = np.full((self.n_points, k.size), k)
 
         for (idx, item) in enumerate(kcolumns):
-            self.k_set[:,item] = array_random[idx]*self.k[item]
+            self.k_set[:,item] = array_random[idx]*k[item]
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.pressure_set = pressure*np.random.uniform(pressure_range[0], pressure_range[1], size = self.n_points)
@@ -49,17 +48,17 @@ class Parameters():
 #-----------------------------------------------------------------------------------------------------
     
 class Simulations():
-    def __init__(self, loki_path,  k ,npoints = 10):
+    def __init__(self, setup_file , chem_file, loki_path,npoints = 10):
         self.cwd = os.getcwd()
         self.loki_path = loki_path
         self.nsimulations = npoints
-        self.parameters = Parameters(k, npoints)
+        self.parameters = Parameters(npoints)
 
         self._generateChemFiles= True
 
     # Compress Parameters methods
-    def random_kset(self,kcolumns = None, krange= [1, 10]): 
-        self.parameters.random_kset(kcolumns, krange)
+    def random_kset(self, k, kcolumns = None, krange= [1, 10]): 
+        self.parameters.random_kset(k, kcolumns, krange)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
@@ -79,7 +78,7 @@ class Simulations():
             exit()
 
         # Read in the example file
-        with open(self.cwd + '\\O2_simple_1.chem', 'r') as file :  
+        with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :  
             lines = []
             for line in file:
                 lines.append(line.strip())
@@ -104,7 +103,7 @@ class Simulations():
 
     def _genSetupFiles(self):
         # Read in the example file
-        with open(self.cwd + '\\setup_O2_simple.in', 'r') as file :
+        with open(self.cwd + '\\simulFiles\\' + setup_file, 'r') as file :
             setup_data = file.read() # (for the setup files we dont need to separate the string in lines)
         
         # Then replace for all self.parameters 
@@ -217,15 +216,18 @@ if __name__ == '__main__':
 
     # path to LoKI
     loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
+    
+    setup_file = "setup_O2_simple.in"
+    chem_file = "O2_simple_1.chem" 
 
     # Definition of reaction scheme 
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 100
+    n_simulations = 10
 
-    simul = Simulations(loki_path, k, n_simulations)
-    simul.random_kset(k_columns, krange=[1,10]) 
+    simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
+    simul.random_kset(k, k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
