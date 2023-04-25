@@ -116,7 +116,8 @@ class Simulations():
         
         # Then replace for all self.parameters 
         for j in range (0, self.nsimulations, 1): 
-            setup_data = re.sub(r'O2_simple(\S+)', 'O2_simple_1_' +str(j)+ '.chem', setup_data) #replace output file name
+            if self._generateChemFiles:
+                setup_data = re.sub(r'O2_simple(\S+)', 'O2_simple_1_' +str(j)+ '.chem', setup_data) #replace the chem file name to read 
             setup_data = re.sub(r'folder:+\s+(\S+)', 'folder: OxygenSimplified_1_' +str(j), setup_data) #replace output folder name
 
             if self.parameters.pressure_set is not None:
@@ -163,6 +164,16 @@ class Simulations():
         #------------------Generate the Chemistry + SetUp files--------------------------#
         if self._generateChemFiles:
             self._genChemFiles()
+        else:
+            print('\nChemistry files are not generated. The following file is used for all simulations: ' + chem_file)
+            # read the example file and write it to the input folder
+            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
+                chemFiledata = file.read()
+            outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1.chem', 'w')
+            outfile.write(chemFiledata)
+            outfile.close()
+
+
         self._genSetupFiles()
 
         #--------------------------------------Run the matlab script---------------------#
@@ -195,10 +206,12 @@ class Simulations():
                 densitie_line = densities[i]
 
                 # write the pressure and radius values
-                file.write("{:.4E}".format(self.parameters.pressure_set[i]))
-                file.write('  ')
-                file.write("{:.4E}".format(self.parameters.radius_set[i]))
-                file.write('  ')
+                if self.parameters.pressure_set is not None:
+                    file.write("{:.4E}".format(self.parameters.pressure_set[i]))
+                    file.write('  ')
+                if self.parameters.radius_set is not None:
+                    file.write("{:.4E}".format(self.parameters.radius_set[i]))
+                    file.write('  ')
                 # write the k and densities values
                 file.write('  '.join( "{:.12E}".format(item) for item in k_line))
                 file.write('  ')
@@ -212,10 +225,10 @@ class Simulations():
         self.parameters.set_npoints(n)
 
     def set_ChemFile_OFF(self):
-        self._genChemFiles = False
+        self._generateChemFiles = False
 
     def set_ChemFile_ON(self):
-        self._genChemFiles = True
+        self._generateChemFiles = True
 
 
 if __name__ == '__main__': 
@@ -228,12 +241,13 @@ if __name__ == '__main__':
     setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 1
+    n_simulations = 3
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.random_kset(k_columns, krange=[1,10]) 
-    simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
-    simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
+    # simul.set_ChemFile_OFF() # if you want fixed values of k's
+    # simul.random_kset(k_columns, krange=[1,10]) 
+    # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
+    # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
 
     # Run simulations
