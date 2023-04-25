@@ -130,18 +130,16 @@ class Simulations():
 
 
 
-    def _read_otpt_densities(self, species):
+    def _read_otpt_densities(self):
 
         def readFile(file_address):
             with open(file_address, 'r') as file :
-                filedata = file.readlines()
-            list=[]
-            s = 0
-            for line in filedata:
-                if(species[s] in line):
-                    list.append(line.split()[1]) # save density value
-                    s+=1  # note: species does not go out of index because filedata ends
-            return list
+                densities=[]
+                for line in file:
+                    if line.startswith(' '):
+                        densities.append(line.split()[1])
+            return densities
+            
 
         densities =[]
         # Read data from all output folders
@@ -172,9 +170,9 @@ class Simulations():
 
 
 
-    def writeDataFile(self, species, filename = 'datapoints.txt'):
+    def writeDataFile(self, filename = 'datapoints.txt'):
 
-        densities = self._read_otpt_densities(species)
+        densities = self._read_otpt_densities()
         # electricCurrent = ...
 
         dir = self.cwd + '\\Data\\'
@@ -222,9 +220,10 @@ if __name__ == '__main__':
 
     # Definition of reaction scheme 
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
-    species = ['O2(X)','O2(a)', 'O(3P)']
+    # species = ['O2(X)','O2(a)', 'O(3P)']
+
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 10
+    n_simulations = 1
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.random_kset(k, k_columns, krange=[1,10]) 
@@ -234,4 +233,4 @@ if __name__ == '__main__':
 
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(species, filename='datapoints.txt')
+    simul.writeDataFile(filename='datapoints.txt')
