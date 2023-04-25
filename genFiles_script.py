@@ -40,7 +40,6 @@ class Parameters():
     def random_electDensity_set(self,electDensity ,electDensity_range = [1, 10]):
         self.electDensity_set = electDensity*np.random.uniform(electDensity_range[0], electDensity_range[1], size = self.n_points)
 
-#chamberRadius: 
     
     def set_npoints(self, npoints):
         self.n_points = npoints
@@ -56,9 +55,18 @@ class Simulations():
 
         self._generateChemFiles= True
 
+        # read the k values from the chem file (to be used in the random_kset method)
+        with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+            values = []
+            for line in file:
+                values.append(line.split()[-2])
+        # create a numpy array with the k values of type float
+        self.k = np.array(values)
+        self.k = self.k.astype(float)
+
     # Compress Parameters methods
-    def random_kset(self, k, kcolumns = None, krange= [1, 10]): 
-        self.parameters.random_kset(k, kcolumns, krange)
+    def random_kset(self, kcolumns = None, krange= [1, 10]): 
+        self.parameters.random_kset(self.k, kcolumns, krange)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
@@ -215,18 +223,15 @@ if __name__ == '__main__':
     # path to LoKI
     loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
     
-    setup_file = "setup_O2_simple.in"
+    # Definition of reaction scheme and setup files
     chem_file = "O2_simple_1.chem" 
-
-    # Definition of reaction scheme 
-    k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
-    # species = ['O2(X)','O2(a)', 'O(3P)']
+    setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
     n_simulations = 1
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.random_kset(k, k_columns, krange=[1,10]) 
+    simul.random_kset(k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
