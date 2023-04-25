@@ -3,7 +3,7 @@ import matlab.engine
 import random
 import os
 random.seed(10)
-# import re
+import re
 
 #-----------------------------------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ class Parameters():
         self.k_set = None
         self.pressure_set = None
     
+    # protect these methods
     def random_kset(self,kcolumns = None): 
 
         array_random = np.random.uniform(self.krange[0], self.krange[1], size = (k.size, self.n_points))
@@ -49,6 +50,15 @@ class Simulations():
         self.loki_path = loki_path
         self.nsimulations = npoints
         self.parameters = Parameters(k, npoints, krange)
+
+        self.replace_k = True
+
+    def random_kset(self,kcolumns = None): 
+        self.parameters.random_kset(kcolumns)
+    
+    def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
+        self.parameters.random_pressure_set(pressure, pressure_range)
+
 
     def runSimulations(self):
         #------------------Generate the Chemistry + SetUp files--------------------------#
@@ -94,22 +104,26 @@ class Simulations():
                 line[-2] = "{:.4E}".format(self.parameters.k_set[j][i])
                 list_out.append('  '.join(line))
 
+            # Write the out chem file 
             outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1_' +str(j)+'.chem', 'w')
             outfile.write("\n".join(list_out))
             outfile.close()
 
-            # Write out the setUp files
+            # replace the name of the chem file to read and the name of the output folder
             setup_data = setup_data.replace('O2_simple_1_' +str(j-1)+'.chem', 'O2_simple_1_' +str(j)+'.chem') #replace chem file name to read
             setup_data = setup_data.replace('OxygenSimplified_1_' +str(j-1), 'OxygenSimplified_1_' +str(j)) #replace output folder name
+
             # replace the pressure value in the setup file, that follows the string "gasPressure: "
-            # setup_data = re.sub(r'gasPressure: \d+.\d+', 'gasPressure: ' + str(self.parameters.pressure_set[j]), setup_data)
+            setup_data = re.sub(r'gasPressure: \d+.\d+', 'gasPressure: ' + "{:.4f}".format(self.parameters.pressure_set[j]), setup_data)
+
+            # Write out the setUp files
             outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\setup_O2_simple_' +str(j)+'.in', 'w') 
             outfile.write(setup_data)
             outfile.close()
 
 
 
-        #--------------------------------------Run the matlab script-------------------------------------------------------------------
+        #--------------------------------------Run the matlab script-------------------------------------------------------------------#
         outfile = open(self.loki_path + "\\n_simulations.txt", 'w')
         outfile.write(str(self.nsimulations))
         outfile.close()
@@ -172,19 +186,15 @@ if __name__ == '__main__':
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # if none, changes all rate coefficients
-    n_trainSet = 500
+    n_trainSet = 5
 
     simul = Simulations(loki_path, k, n_trainSet, krange=[1,10])
-    simul.parameters.random_kset(k_columns) # compress this function into the class
+    simul.random_kset(k_columns) 
+    simul.random_pressure_set(pressure= 1133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
 
     # Run simulations
     simul.runSimulations()
     simul.writeDataFile(species, filename='datapoints.txt')
-
-    # run the matlab script
-    eng = matlab.engine.start_matlab()
-
-    # read file "dataponits.txt" and capture value after "pressure: "
     
 
     # Create a test set
