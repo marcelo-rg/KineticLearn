@@ -1,8 +1,8 @@
 import numpy as np
 import matlab.engine
 import os
-np.random.seed(10) # Recover reproducibility
 import re
+np.random.seed(10) # Recover reproducibility
 
 #-----------------------------------------------------------------------------------------------------
 
@@ -70,6 +70,8 @@ class Simulations():
     def random_electDensity_set(self,electDensity ,electDensity_range = [1, 10]):
         self.parameters.random_electDensity_set(electDensity, electDensity_range)
 
+
+
     # Private methods
     def _genChemFiles(self):
         if self.parameters.k_set is None:
@@ -97,6 +99,8 @@ class Simulations():
             outfile.write("\n".join(list_out))
             outfile.close()
             
+
+
 
     def _genSetupFiles(self):
         # Read in the example file
@@ -127,6 +131,30 @@ class Simulations():
             outfile.close()
 
 
+
+    def _read_otpt_densities(self, species):
+
+        def readFile(file_address):
+            with open(file_address, 'r') as file :
+                filedata = file.readlines()
+
+            list=[]
+            s = 0
+            for line in filedata:
+                if(species[s] in line):
+                    list.append(line.split()[1]) # save density value
+                    s+=1  # note: species does not go out of index because filedata ends
+            return list
+
+        densities =[]
+        # Read data from all output folders
+        for i in range(self.nsimulations):
+            file_address = self.loki_path+ '\\Code\\Output\\OxygenSimplified_1_' + str(i) + '\\chemFinalDensities.txt'
+            densities.append(readFile(file_address))
+
+        return np.array(densities)
+
+
     # Public methods
     def runSimulations(self):
         #------------------Generate the Chemistry + SetUp files--------------------------#
@@ -145,33 +173,22 @@ class Simulations():
         eng.loki_loop(nargout=0)  # run the matlab script
         exit()
 
+
+
     def writeDataFile(self, species, filename = 'datapoints.txt'):
-        #species = ['O2(X)','O2(a)', 'O2(b)', 'O(3P)', 'O(1D)']
-        def read_output(file_address):
 
-            with open(file_address, 'r') as file :
-                filedata = file.readlines()
-
-            list=[]
-            s = 0
-            for line in filedata:
-                if(species[s] in line):
-                    list.append(line.split()[1]) # save density value
-                    s+=1  # note: species does not go out of index because filedata ends
-            return list
-
-        densities =[]
-        # Read data from all output folders
-        for i in range(self.nsimulations):
-            file_address = self.loki_path+ '\\Code\\Output\\OxygenSimplified_1_' + str(i) + '\\chemFinalDensities.txt'
-            densities.append(read_output(file_address))
+        densities = self._read_otpt_densities(species)
+        # [Chamar mais metodos para ler variaveis de outros ficheiros de output]
+        # electricCurrent = ...
 
 
-        densities = np.array(densities)
+        dir = self.cwd + '\\Data\\'
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
-        #------------------------------------------Write the data file----------------------#
+        # Write the data file
         # get the path of the current working directory
-        with open(self.cwd + filename, 'w') as file:
+        with open(dir + filename, 'w') as file:
             for i in range(self.nsimulations):
                 k_line = self.parameters.k_set[i]
                 densitie_line = densities[i]
@@ -179,6 +196,8 @@ class Simulations():
                 file.write('  '.join( "{:.12E}".format(item) for item in k_line))
                 file.write('  ')
                 file.write('  '.join( "{:.12E}".format(float(item)) for item in densitie_line)+'\n')
+
+
 
     # Setters and getters
     def set_nsimulations(self, n):
@@ -200,15 +219,14 @@ if __name__ == '__main__':
     # Definition of reaction scheme 
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53]) # total of 9 reactions
     species = ['O2(X)','O2(a)', 'O(3P)']
-    k_columns = [0,1,2] # if none, changes all rate coefficients
-    n_trainSet = 5
+    k_columns = [0,1,2] # if None, changes all columns
+    n_simulations = 5
 
-    simul = Simulations(loki_path, k, n_trainSet)
+    simul = Simulations(loki_path, k, n_simulations)
     simul.random_kset(k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
-
 
     # Run simulations
     simul.runSimulations()
