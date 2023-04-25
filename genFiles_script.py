@@ -244,10 +244,10 @@ if __name__ == '__main__':
     n_simulations = 3
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    # simul.set_ChemFile_OFF() # if you want fixed values of k's
-    # simul.random_kset(k_columns, krange=[1,10]) 
-    # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
-    # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
+    simul.set_ChemFile_OFF() # if you want fixed values of k's
+    simul.random_kset(k_columns, krange=[1,10]) 
+    simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
+    simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
 
     # Run simulations
