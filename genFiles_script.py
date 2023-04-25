@@ -19,6 +19,7 @@ class Parameters():
     # protect these methods
     def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
 
+        # if k is None:
         array_random = np.random.uniform(krange[0], krange[1], size = (k.size, self.n_points))
         
         if kcolumns is None:
@@ -53,20 +54,30 @@ class Simulations():
         self.nsimulations = npoints
         self.parameters = Parameters(npoints)
 
-        self._generateChemFiles= True
+        self._generateChemFiles= False
+        # self.setup_file = setup_file
+        self.outptFolder = chem_file[:-5]
+        # create input folder if does not exist
+        dir = self.loki_path+ '\\Code\\Input\\'+self.outptFolder
+        if not os.path.exists(dir):
+            os.makedirs(dir)
 
-        # read the k values from the chem file (to be used in the random_kset method)
-        with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
-            values = []
-            for line in file:
-                values.append(line.split()[-2])
-        # create a numpy array with the k values of type float
-        self.k = np.array(values)
-        self.k = self.k.astype(float)
 
     # Compress Parameters methods
     def random_kset(self, kcolumns = None, krange= [1, 10]): 
-        self.parameters.random_kset(self.k, kcolumns, krange)
+        # read the k values from the chem file (to be used in the random_kset method)
+        if self._generateChemFiles:
+            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+                values = []
+                for line in file:
+                    values.append(line.split()[-2])
+            # create a numpy array with the k values of type float
+            k = np.array(values)
+            k = k.astype(float)
+        else:
+            k= None
+
+        self.parameters.random_kset(k , kcolumns, krange)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
@@ -102,7 +113,7 @@ class Simulations():
                 list_out.append(line)
 
             # Write the out chem file 
-            outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1_' +str(j)+'.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\O2_simple_1_' +str(j)+'.chem', 'w')
             outfile.write("\n".join(list_out))
             outfile.close()
             
@@ -116,9 +127,9 @@ class Simulations():
         
         # Then replace for all self.parameters 
         for j in range (0, self.nsimulations, 1): 
-            if self._generateChemFiles:
+            if self._generateChemFiles: 
                 setup_data = re.sub(r'O2_simple(\S+)', 'O2_simple_1_' +str(j)+ '.chem', setup_data) #replace the chem file name to read 
-            setup_data = re.sub(r'folder:+\s+(\S+)', 'folder: OxygenSimplified_1_' +str(j), setup_data) #replace output folder name
+            setup_data = re.sub(r'folder:+\s+(\S+)', 'folder: ' + self.outptFolder +'_'+str(j), setup_data) #replace output folder name
 
             if self.parameters.pressure_set is not None:
                 # replace the pressure value in the setup file, that follows the string "gasPressure: "
@@ -133,7 +144,7 @@ class Simulations():
                 setup_data = re.sub(r'electronDensity: \d+.\d+', 'electronDensity: ' + "{:.4f}".format(self.parameters.electDensity_set[j]), setup_data)
 
             # Write out the setUp files
-            outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\setup_O2_simple_' +str(j)+'.in', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\setup_O2_simple_' +str(j)+'.in', 'w')
             outfile.write(setup_data)
             outfile.close()
 
@@ -169,7 +180,7 @@ class Simulations():
             # read the example file and write it to the input folder
             with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
                 chemFiledata = file.read()
-            outfile = open(self.loki_path+ '\\Code\\Input\\SimplifiedOxygen\\O2_simple_1.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\O2_simple_1.chem', 'w')
             outfile.write(chemFiledata)
             outfile.close()
 
@@ -177,8 +188,9 @@ class Simulations():
         self._genSetupFiles()
 
         #--------------------------------------Run the matlab script---------------------#
-        outfile = open(self.loki_path + "\\n_simulations.txt", 'w')
-        outfile.write(str(self.nsimulations))
+        outfile = open(self.loki_path + "\\loop_config.txt", 'w')
+        outfile.write(str(self.nsimulations)) # save nsimul for matlab script
+        outfile.write("\n"+ self.outptFolder+'\\'+setup_file[:-3]+'_') # save output folder name for matlab script
         outfile.close()
         os.chdir(self.loki_path+ "\\Code") # First change the working directory so that the relatives paths of loki work
         eng = matlab.engine.start_matlab()
@@ -239,6 +251,8 @@ if __name__ == '__main__':
     # Definition of reaction scheme and setup files
     chem_file = "O2_simple_1.chem" 
     setup_file = "setup_O2_simple.in"
+    chem_file = "oxygen_novib.chem" 
+    setup_file = "oxygen_chem_setup_novib.in"
 
     k_columns = [0,1,2] # if None, changes all columns
     n_simulations = 3
