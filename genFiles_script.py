@@ -18,8 +18,9 @@ class Parameters():
     
     # protect these methods
     def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
-
-        # if k is None:
+        if k is None:
+            print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
+            exit()
         array_random = np.random.uniform(krange[0], krange[1], size = (k.size, self.n_points))
         
         if kcolumns is None:
@@ -63,7 +64,6 @@ class Simulations():
             os.makedirs(dir)
 
 
-    # Compress Parameters methods
     def random_kset(self, kcolumns = None, krange= [1, 10]): 
         # read the k values from the chem file (to be used in the random_kset method)
         if self._generateChemFiles:
@@ -113,7 +113,7 @@ class Simulations():
                 list_out.append(line)
 
             # Write the out chem file 
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\O2_simple_1_' +str(j)+'.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+self.outptFolder+'_' +str(j)+'.chem', 'w')
             outfile.write("\n".join(list_out))
             outfile.close()
             
@@ -128,7 +128,8 @@ class Simulations():
         # Then replace for all self.parameters 
         for j in range (0, self.nsimulations, 1): 
             if self._generateChemFiles: 
-                setup_data = re.sub(r'O2_simple(\S+)', 'O2_simple_1_' +str(j)+ '.chem', setup_data) #replace the chem file name to read 
+                new_chemFile_name = self.outptFolder+ "\\\\"+ self.outptFolder+'_' +str(j)+ '.chem'
+                setup_data = re.sub(r"chemFiles:\s*\n\s*- (.+?)\n", f"chemFiles:\n      - {new_chemFile_name}\n", setup_data) #replace chem file name
             setup_data = re.sub(r'folder:+\s+(\S+)', 'folder: ' + self.outptFolder +'_'+str(j), setup_data) #replace output folder name
 
             if self.parameters.pressure_set is not None:
@@ -144,7 +145,7 @@ class Simulations():
                 setup_data = re.sub(r'electronDensity: \d+.\d+', 'electronDensity: ' + "{:.4f}".format(self.parameters.electDensity_set[j]), setup_data)
 
             # Write out the setUp files
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\setup_O2_simple_' +str(j)+'.in', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+setup_file[:-3]+'_' +str(j)+'.in', 'w')
             outfile.write(setup_data)
             outfile.close()
 
@@ -164,7 +165,7 @@ class Simulations():
         densities =[]
         # Read data from all output folders
         for i in range(self.nsimulations):
-            file_address = self.loki_path+ '\\Code\\Output\\OxygenSimplified_1_' + str(i) + '\\chemFinalDensities.txt'
+            file_address = self.loki_path+ '\\Code\\Output\\'+self.outptFolder+'_' + str(i) + '\\chemFinalDensities.txt'
             densities.append(readFile(file_address))
 
         return np.array(densities)
@@ -180,7 +181,7 @@ class Simulations():
             # read the example file and write it to the input folder
             with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
                 chemFiledata = file.read()
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\O2_simple_1.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+chem_file[:-5] +'.chem', 'w')
             outfile.write(chemFiledata)
             outfile.close()
 
@@ -211,12 +212,15 @@ class Simulations():
             os.makedirs(dir)
 
         # Write the data file
-        # get the path of the current working directory
         with open(dir + filename, 'w') as file:
             for i in range(self.nsimulations):
-                k_line = self.parameters.k_set[i]
                 densitie_line = densities[i]
 
+                # write the k values
+                if self.parameters.k_set is not None:
+                    k_line = self.parameters.k_set[i]
+                    file.write('  '.join( "{:.12E}".format(item) for item in k_line))
+                    file.write('  ')
                 # write the pressure and radius values
                 if self.parameters.pressure_set is not None:
                     file.write("{:.4E}".format(self.parameters.pressure_set[i]))
@@ -224,9 +228,8 @@ class Simulations():
                 if self.parameters.radius_set is not None:
                     file.write("{:.4E}".format(self.parameters.radius_set[i]))
                     file.write('  ')
-                # write the k and densities values
-                file.write('  '.join( "{:.12E}".format(item) for item in k_line))
-                file.write('  ')
+
+                # write the densities values
                 file.write('  '.join( "{:.12E}".format(float(item)) for item in densitie_line)+'\n')
 
 
@@ -251,15 +254,15 @@ if __name__ == '__main__':
     # Definition of reaction scheme and setup files
     chem_file = "O2_simple_1.chem" 
     setup_file = "setup_O2_simple.in"
-    chem_file = "oxygen_novib.chem" 
-    setup_file = "oxygen_chem_setup_novib.in"
+    # chem_file = "oxygen_novib.chem" 
+    # setup_file = "oxygen_chem_setup_novib.in"
 
     k_columns = [0,1,2] # if None, changes all columns
     n_simulations = 3
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_OFF() # if you want fixed values of k's
-    simul.random_kset(k_columns, krange=[1,10]) 
+    simul.set_ChemFile_OFF # if you want fixed values of k's
+    # simul.random_kset(k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]

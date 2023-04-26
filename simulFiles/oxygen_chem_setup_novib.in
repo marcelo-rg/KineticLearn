@@ -89,7 +89,7 @@ chemistry:
     intConvCoeff: 120/1.6021766208e-19  % in eV s-1 m-2 K-1 (internal convection coefficient of the cylindrical wall)
     extConvCoeff: 15/1.6021766208e-19   % in eV s-1 m-2 K-1 (external convection coefficient of the cylindrical wall)
   chemFiles: 
-    - Oxygen/oxygen_novib.chem
+    - oxygen_novib/oxygen_novib.chem
   gasProperties:                        % inherited from the configuration of the electron kinetics
     mass: Databases/masses.txt
     heatCapacity:                       % in eV K-1 mol-1 (heat capacity functions at constant pressure)
