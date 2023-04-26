@@ -27,7 +27,7 @@ chemistry:
   thermalModel:
     isOn: false                         % true or false (to activate or deactivate the thermal model)
   chemFiles: 
-    - O2_simple_1/O2_simple_1.chem
+    - SimplifiedOxygen/O2_simple_1.chem
   gasProperties: % inherited from the configuration of the electron kinetics
     fraction:
       - O2 = 1
