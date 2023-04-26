@@ -252,21 +252,18 @@ if __name__ == '__main__':
     loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
     
     # Definition of reaction scheme and setup files
-    chem_file = "O2_simple_1.chem" 
-    setup_file = "setup_O2_simple.in"
-    # chem_file = "oxygen_novib.chem" 
-    # setup_file = "oxygen_chem_setup_novib.in"
+    chem_file = "oxygen_novib.chem" 
+    setup_file = "oxygen_chem_setup_novib.in"
 
-    k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 3
+    # k_columns = [0,1,2] # if None, changes all columns
+    n_simulations = 10
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_OFF # if you want fixed values of k's
+    simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
     # simul.random_kset(k_columns, krange=[1,10]) 
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
     simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
-    # simul.random_electDensity_set(electDensity= 5e14, electDensity_range=[1,100]) # [5e14, 5e16]
-
+    
     # Run simulations
     simul.runSimulations()
     simul.writeDataFile(filename='datapoints.txt')

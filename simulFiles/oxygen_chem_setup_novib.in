@@ -117,7 +117,7 @@ chemistry:
   iterationSchemes:
     pressureRelError: 1e-3
     pressureMaxIterations: 800
-    neutralityRelError: 1e-3
+    neutralityRelError: 1e-2
     neutralityMaxIterations: 100
     globalRelError: 1e-3
     globalMaxIterations: 200
