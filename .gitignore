@@ -2,3 +2,5 @@
 *.pyc
 Images/**/*.png
 *.tar
+*.npy
+*.pt
