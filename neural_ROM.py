@@ -1,9 +1,7 @@
-import metrics_normalization as mn
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 import torch as T
-# import torch.nn as nn
 device = T.device("cpu")
 from sklearn import preprocessing
 
@@ -173,7 +171,7 @@ class MyPlots():
         plt.xlabel('epoch')
         plt.ylabel('loss')
         plt.legend()
-        plt.savefig('C:\\Users\\clock\\Desktop\\Python\\Images\\Full_ROM_model\\loss_curve.png')
+        plt.savefig('Images\\Full_ROM_model\\loss_curve.png')
     
     def plot_predict_target(self, predict, target, sort_by_target= False):
         npoints = len(predict)
@@ -208,13 +206,13 @@ if __name__ == '__main__':
     T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3_3k.txt' 
+    src_file = 'data\\datapointsk1k2k3_3k.txt' 
     species = ['O2(X)', 'O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
     nfunctions = 4
 
-    dir_path = "C:\\Users\\clock\\Desktop\\Python\\Images\\statistics\\stacks\\500_samples\\"
+    dir_path = "Images\\statistics\\stacks\\500_samples\\"
     samples_dataset = Samples_Dataset(features_file=dir_path+"stack_train.pt",
                                        targets_file=dir_path+"densities_targets_train.npy")
 
@@ -317,7 +315,7 @@ if __name__ == '__main__':
 
     # Plot densities of training set
     for idx in range(len(train_predictions[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\Full_ROM_model\\training' + species[idx]+'.png'
+        filename = 'Images\\Full_ROM_model\\training' + species[idx]+'.png'
         plt.clf()
         a = y_train[:,idx] # target
         b = train_predictions[:,idx] # predicted
@@ -328,7 +326,7 @@ if __name__ == '__main__':
 
 #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    test_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3.txt'
+    test_file = 'data\\datapointsk1k2k3.txt'
     all_xy =  np.loadtxt(test_file,
         usecols=[0,1,2,3,4,5,6,7,8,9,10,11], delimiter="  ",
         # usecols=range(0,9), delimiter="\t",
@@ -359,7 +357,7 @@ if __name__ == '__main__':
 
     # Create a scatter plot of the two densitie arrays against each other
     for idx in range(len(predict[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\Full_ROM_model\\correlations_test' + str(idx+1)+'.png'
+        filename = 'Images\\Full_ROM_model\\correlations_test' + str(idx+1)+'.png'
         plt.clf()
         a = target[:,idx]
         b = predict[:,idx]

@@ -1,4 +1,3 @@
-import metrics_normalization as mn
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -138,7 +137,7 @@ class MyPlots():
         plt.xlabel('epoch')
         plt.ylabel('loss')
         plt.legend()
-        plt.savefig('C:\\Users\\clock\\Desktop\\Python\\Images\\loss_curve.png')
+        plt.savefig('Images\\loss_curve.png')
     
     def plot_predict_target(self, predict, target, sort_by_target= False):
         npoints = len(predict)
@@ -174,7 +173,7 @@ if __name__=='__main__':
     T.manual_seed(9) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3_3k.txt' 
+    src_file = 'data\\datapointsk1k2k3_3k.txt' 
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
@@ -272,7 +271,7 @@ if __name__=='__main__':
 
     # Plot k's of training set
     for idx in range(len(train_predictions[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\ks\\k' + str(idx+1)+'.png'
+        filename = 'Images\\ks\\k' + str(idx+1)+'.png'
         plt.clf()
         a = y_train[:,idx] # target
         b = train_predictions[:,idx] # predicted
@@ -284,7 +283,7 @@ if __name__=='__main__':
     predict =  net_forward(net(train_dataset[:][0]).detach()).detach().numpy()
     target = train_dataset[:][0] # input densities
     for idx in range(len(predict[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\ks\\training_forward_' + species[idx]+'.png'
+        filename = 'Images\\ks\\training_forward_' + species[idx]+'.png'
         plt.clf()
         a = target[:,idx] # target
         b = predict[:,idx] # predicted
@@ -294,7 +293,7 @@ if __name__=='__main__':
 
     #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    test_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3.txt'
+    test_file = 'data\\datapointsk1k2k3.txt'
     all_xy =  np.loadtxt(test_file,
         usecols=[0,1,2,3,4,5,6,7,8,9,10,11], delimiter="  ",
         # usecols=range(0,9), delimiter="\t",
@@ -319,7 +318,7 @@ if __name__=='__main__':
     np.savetxt("seed_1.txt", predict)
     # Plot k's of test set
     for idx in range(len(predict[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\k_test_' + str(idx+1)+'.png'
+        filename = 'Images\\k_test_' + str(idx+1)+'.png'
         plt.clf()
         a = target[:,idx] # target
         b = predict[:,idx] # predicted
@@ -333,7 +332,7 @@ if __name__=='__main__':
     predict_fwd =  net_forward(my_x).detach().numpy()
     target = x_data.numpy()
     for idx in range(len(predict_fwd[0])):
-        filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\ks\\forward_' + species[idx]+'.png'
+        filename = 'Images\\ks\\forward_' + species[idx]+'.png'
         plt.clf()
         a = target[:,idx] # target
         b = predict_fwd[:,idx] # predicted
@@ -345,4 +344,4 @@ if __name__=='__main__':
     #---------------------------SAVE THE PREDICTED k'S TO BE INSERTED IN THE SIMULATION AGAIN--------------------------------
     # I want to test if with the predicted k's we obtain these same densities
     array = np.hstack((full_dataset.scaler.inverse_transform(predict),full_dataset.scaler_max_abs.inverse_transform(densities)))
-    np.savetxt("C:\\Users\\clock\\Desktop\\Python\\predictions_test.txt", array, fmt= "%.4e")
+    np.savetxt("data\\predictions_test.txt", array, fmt= "%.4e")
