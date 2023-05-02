@@ -51,7 +51,7 @@ class Samples_Dataset(T.utils.data.Dataset):
         func2 = divide(tmp_coeff, col1 = 0, col2 = 1)
         func3 = add(tmp_coeff, col1 = 0, col2 = 1) 
 
-        tmp_coeff = np.column_stack((func1,func2, func3, tmp_coeff[:,-1]))
+        tmp_coeff = np.column_stack((func1,func2, func3, tmp_coeff))
         # Transform back to tensor 
         self.features = T.tensor(tmp_coeff, dtype=T.float64).to(device)
 
@@ -94,7 +94,7 @@ class LoadDataset(T.utils.data.Dataset):
         func2 = divide(tmp_y, col1 = 0, col2 = 1)
         func3 = add(tmp_y, col1 = 0, col2 = 1)
 
-        stack = np.column_stack((func1,func2, func3, tmp_y[:,-1]))
+        stack = np.column_stack((func1,func2, func3, tmp_y))
         tmp_y = stack
 
         # Normalize data
@@ -124,18 +124,35 @@ class LoadDataset(T.utils.data.Dataset):
 
 # ------------------------------------------------------------------------------
 
+class SparseLayer(T.nn.Module):
+    def __init__(self, input_size, output_size, connectivity) -> None:
+        super(SparseLayer, self).__init__()
+        self.in_size = input_size
+        self.out_size = output_size
+        self.connectivity = connectivity
+        self.weight = T.nn.Parameter(T.randn(input_size, output_size))
+    
+    def forward(self, x):
+        # apply sparse connectivity pattern to weight matrix
+        x = T.matmul(x, self.weight*self.connectivity) #include .t()?
+        return x
+
+# ------------------------------------------------------------------------------
+
 class Full_ROM(T.nn.Module):
     def __init__(self, input_size, hidden_size):
         super(Full_ROM, self).__init__()
 
-        # self.LinearRegression = T.nn.Sequential(
-        #     T.nn.Linear(input_size, 1),
-        #     # T.nn.Tanh()
-        # )
-        self.LinearRegression = T.nn.Sequential(T.nn.Linear(input_size, 1),T.nn.Tanh())
+        self.connectivity = T.eye(input_size)
+
+        self.LinearRegression = SparseLayer(input_size, input_size, self.connectivity)
+        
+        # set weights outside the diagonal to zero (apply mask)
+        self.LinearRegression.weight.data *= self.connectivity
+
             
         self.decoder = T.nn.Sequential(
-            T.nn.Linear(1, hidden_size),
+            T.nn.Linear(input_size, hidden_size),
             T.nn.Tanh(),
             T.nn.Linear(hidden_size, hidden_size),
             T.nn.Tanh(),
@@ -210,7 +227,7 @@ if __name__ == '__main__':
     species = ['O2(X)', 'O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
-    nfunctions = 4
+    nfunctions = 6
 
     dir_path = "Images\\statistics\\stacks\\500_samples\\"
     samples_dataset = Samples_Dataset(features_file=dir_path+"stack_train.pt",
@@ -224,12 +241,12 @@ if __name__ == '__main__':
     max_epochs = 200
     ep_log_interval =10
     lrn_rate = 0.01
-    l1_coeff = 0.01
+    l1_coeff = 0.0
 
     # 4. Choose loss and optimizer
     loss_func = T.nn.MSELoss()
     # loss_mse = T.nn.MSELoss()
-    optimizer = T.optim.Adam(model.parameters(), lr=lrn_rate) # , weight_decay=1e-4)
+    optimizer = T.optim.Adam(model.parameters(), lr=lrn_rate, weight_decay=1e-4)
 
     # Split into training and validation sets | samples_dataset -> full_dataset
     train_size = int(0.90 * len(full_dataset))
@@ -300,7 +317,7 @@ if __name__ == '__main__':
     # Iterate through the model parameters and print out their values
     for name, param in model.named_parameters():
         if 'LinearRegression' in name:  # Only print encoder parameters
-            print(name, param.data)
+            print(name, T.diagonal(param.data))
 
     # --------------------------------------EVALUATION OF TRAINING SET--------------------------------------------
     model.eval()
@@ -339,7 +356,7 @@ if __name__ == '__main__':
     func2 = divide(tmp_y, col1 = 0, col2 = 1)
     func3 = add(tmp_y, col1 = 0, col2 = 1)
 
-    stack = np.column_stack((func1,func2, func3, tmp_y[:,-1]))
+    stack = np.column_stack((func1,func2, func3, tmp_y))
     tmp_y = stack
 
     # Normalize data
