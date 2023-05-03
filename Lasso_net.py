@@ -4,6 +4,8 @@ import matplotlib
 import torch as T
 device = T.device("cpu")
 from sklearn import preprocessing
+from sklearn.metrics import mean_squared_error
+import lassonet
 
 
 def divide_and_extract(arr):
@@ -228,116 +230,142 @@ if __name__ == '__main__':
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
     nfunctions = 6
+    feature_names = ['k1*k2','k1/k2','k1+k2','k1', 'k2', 'k3']
 
     dir_path = "Images\\statistics\\stacks\\500_samples\\"
     samples_dataset = Samples_Dataset(features_file=dir_path+"stack_train.pt",
                                        targets_file=dir_path+"densities_targets_train.npy")
 
-    # 2. Create neural network
-    model = Full_ROM(input_size= nfunctions, hidden_size= 10).to(device)
-    model.to(T.double) # set model to float64
 
-    # 3. Build training Model
-    max_epochs = 200
-    ep_log_interval =10
-    lrn_rate = 0.01
-    l1_coeff = 1e-4
+    # Choose optimizer
+    # optimizer = T.optim.Adam(lr=1e-3)
 
-    # 4. Choose loss and optimizer
-    loss_func = T.nn.MSELoss()
-    # loss_mse = T.nn.MSELoss()
-    optimizer = T.optim.Adam(model.parameters(), lr=lrn_rate, weight_decay=1e-4)
-
-    # Split into training and validation sets | samples_dataset -> full_dataset
+    # 1 Split into training and validation sets | samples_dataset -> full_dataset
     train_size = int(0.90 * len(full_dataset))
     test_size = len(full_dataset) - train_size
-    train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
+    train_dataset, test_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
 
-    # Create minibatch on training set
-    bat_size= 20
-    train_loader = T.utils.data.DataLoader(train_dataset,
-        batch_size=bat_size, shuffle=True) # set to True
+    # 2. Create LassoNet model
+    # patience: Number of epochs to wait without improvement during early stopping.
+    model = lassonet.LassoNetRegressor(
+        n_iters = (1000,100), 
+        patience = 10, 
+        hidden_dims=(100,), 
+        torch_seed= 8, 
+        lambda_start= 'auto', 
+        M=10, 
+        batch_size=20, 
+        path_multiplier=1.1,
+        # gamma= 1e-4,
+        # gamma_skip= 1e-4,
+    ) #, optimizer=optimizer)
     
-    # Extract x and y of validation set
-    x_val = val_dataset[:][0]
-    y_val = val_dataset[:][1]
+    X_train = train_dataset[:][0].detach().numpy()
+    Y_train = train_dataset[:][1].detach().numpy()
+    x_test = test_dataset[:][0].detach().numpy()
+    y_test = test_dataset[:][1].detach().numpy()
 
-    # Initialize data structures to store info
-    myplot = MyPlots() 
-
-    # 5. Training algorithm
-    print("Start training\n")
-    for epoch in range(0, max_epochs):
-        epoch_loss = 0  # for one full epoch
-
-        model.train()  # set mode
-
-        for (batch_idx, batch) in enumerate(train_loader):
-            (X_batch, Y_batch) = batch           # (predictors, targets)
-            optimizer.zero_grad()                # prepare gradients
-            oupt = model(X_batch)                # predicted rate coefficient 
-            # print(np.shape(X_batch))
-            # exit()
-            loss_val_mse = loss_func(oupt, Y_batch)
-            # Add L1 regularization to the first input layer 
-            loss_val = loss_val_mse #+ l1_loss
-            l1_loss = T.tensor(0., requires_grad=True)
-            # for param in model.LinearRegression.parameters():
-            #     l1_loss = l1_loss + T.norm(param, p=1) # p=1 is norm 1
-            for name, param in model.named_parameters():
-                # if 'bias' not in name:
-                l1_loss = l1_loss + T.norm(param, 2)
-            loss_val = loss_val_mse + l1_coeff * l1_loss
-            epoch_loss += loss_val.item()        # accumulate avgs
-            loss_val.backward()                  # compute gradients
-            optimizer.step()                     # update wts
-            n_batches = batch_idx+1              # save number of batches
-
-        #-------------------------------------------------------------
-        # Print and save loss and errors
-        if (epoch % ep_log_interval) == 0:
-            myplot.epoch_list.append(epoch)
-            myplot.epoch_loss_list.append(epoch_loss/n_batches)
-            # myplot.epoch_loss_list_loki.append(loss_val_loki.item()/n_batches)
-
-            model.eval() # (?)
-            prediction = model(x_val)
-            # print(np.shape(x_val))
-            # exit()
-            # loss_val = loss_func(prediction, y_val)
-            loss_val = loss_func(prediction, y_val) #+ l1 loss
-            myplot.val_loss_list.append(loss_val.item())
-
-            print("epoch = %4d   loss = %0.4f  l1_loss= %0.4f  validation_loss= %0.4f,  param_norm = %0.4f" % \
-            (epoch, epoch_loss/n_batches, l1_coeff*l1_loss, loss_val.item() ,param_norm()))
-        #--------------------------------------------------------------
-
-    print("Training complete \n")
-
-    print("\ntotal parameters' norm: ", param_norm())
+    # 3. train model
+    path = model.path(X_train, Y_train)
+    # path = model.fit(X_train, Y_train)
 
 
-    # Iterate through the model parameters and print out their values
-    for name, param in model.named_parameters():
-        if 'LinearRegression' in name:  # Only print encoder parameters
-            print(name, T.diagonal(param.data))
+    # 4. Plot results ----------------------------------------------------------
+    fig = plt.figure(figsize=(12, 12))
+    # def plot_results_path():
+    n_selected = []
+    mse = []
+    lambda_ = []
+
+    for save in path:
+        model.load(save.state_dict)
+        y_pred = model.predict(x_test)
+        n_selected.append(save.selected.sum().cpu().numpy())
+        mse.append(mean_squared_error(y_test, y_pred))
+        lambda_.append(save.lambda_)
+
+    mse_min_idx = np.argmin(mse)
+    lambda_min_mse = lambda_[mse_min_idx]
+    n_selected_min_mse = n_selected[mse_min_idx]
+    
+    # y_predic = model.predict(x_test)
+    plt.subplot(311)
+    plt.grid(True)
+    plt.plot(n_selected, mse, ".-")
+    plt.xlabel("number of selected features")
+    plt.ylabel("MSE")
+
+    plt.subplot(312)
+    plt.grid(True)
+    plt.plot(lambda_, mse, ".-")
+    plt.xlabel("lambda")
+    plt.xscale("log")
+    plt.ylabel("MSE")
+
+    plt.subplot(313)
+    plt.grid(True)
+    plt.plot(lambda_, n_selected, ".-")
+    plt.xlabel("lambda")
+    plt.xscale("log")
+    plt.ylabel("number of selected features")
+
+    plt.savefig("Images\\Full_ROM_model\\lasso_net.png")
+
+    plt.clf()
+
+    n_features = X_train.shape[1]
+    importances = model.feature_importances_.numpy() #When does each feature disappear on the path?
+    order = np.argsort(importances)[::-1]
+    importances = importances[order]
+    ordered_feature_names = [feature_names[i] for i in order]
+    # color = np.array(["g"] * true_features + ["r"] * (n_features - true_features))[order]
+
+
+    plt.subplot(211)
+    plt.bar(
+        np.arange(n_features),
+        importances,
+        # color=color,
+    )
+    plt.xticks(np.arange(n_features), ordered_feature_names, rotation=90)
+    colors = {"real features": "g", "fake features": "r"}
+    labels = list(colors.keys())
+    # handles = [plt.Rectangle((0, 0), 1, 1, color=colors[label]) for label in labels]
+    # plt.legend(handles, labels)
+    plt.ylabel("Feature importance")
+
+    _, order = np.unique(importances, return_inverse=True)
+
+    plt.subplot(212)
+    plt.bar(
+        np.arange(n_features),
+        order + 1,
+        # color=color,
+    )
+    plt.xticks(np.arange(n_features), ordered_feature_names, rotation=90)
+    # plt.legend(handles, labels)
+    plt.ylabel("Feature order")
+
+    plt.savefig("Images\\Full_ROM_model\\lasso_net-bar.png")
+
+
 
     # --------------------------------------EVALUATION OF TRAINING SET--------------------------------------------
-    model.eval()
-    train_predictions = model(train_dataset[:][0]).detach().numpy()
-    y_train = train_dataset[:][1].numpy()
+    model.load(path[mse_min_idx].state_dict)
+    train_predictions = model.predict(X_train)
 
     # Set matplotlib fig. size, etc...
+    myplot = MyPlots()
     myplot.configure()
 
     # Plot loss curves
-    myplot.plot_loss_curves()
+    # myplot.plot_loss_curves()
 
     # Plot densities of training set
     for idx in range(len(train_predictions[0])):
         filename = 'Images\\Full_ROM_model\\training' + species[idx]+'.png'
         plt.clf()
-        a = y_train[:,idx] # target
+        a = Y_train[:,idx] # target
         b = train_predictions[:,idx] # predicted
         myplot.plot_predict_target(b, a, sort_by_target=True)
         plt.title(species[idx])
@@ -371,9 +399,15 @@ if __name__ == '__main__':
     y_data = T.tensor(tmp_x, \
         dtype=T.float64).to(device)
 
-    predict =  model(x_data).detach().numpy()
+    predict =  model.predict(x_data.detach().numpy())
     target = y_data.numpy()
     densities = x_data.numpy()
+
+
+    plt.clf()
+    lassonet.plot.plot_path(model,path, x_data.detach().numpy(), target)
+    plt.savefig("Images\\Full_ROM_model\\lasso_net-plot-path.png")
+    myplot.configure()
 
     # Create a scatter plot of the two densitie arrays against each other
     for idx in range(len(predict[0])):
@@ -410,4 +444,7 @@ if __name__ == '__main__':
         plt.plot([0, 1], [0, 1], linestyle='--', color='k')
         plt.savefig(filename)
 
-
+        # Final print
+        print("num selected features: ", n_selected_min_mse)
+        print("lambda: ",lambda_min_mse)
+        print("MSE: ", mse[mse_min_idx])

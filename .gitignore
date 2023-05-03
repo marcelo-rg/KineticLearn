@@ -4,3 +4,4 @@ Images/**/*.png
 *.tar
 *.npy
 *.pt
+*.png
