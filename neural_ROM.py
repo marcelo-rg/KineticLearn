@@ -241,7 +241,7 @@ if __name__ == '__main__':
     max_epochs = 200
     ep_log_interval =10
     lrn_rate = 0.01
-    l1_coeff = 0.0
+    l1_coeff = 1e-4
 
     # 4. Choose loss and optimizer
     loss_func = T.nn.MSELoss()
@@ -282,8 +282,11 @@ if __name__ == '__main__':
             # Add L1 regularization to the first input layer 
             loss_val = loss_val_mse #+ l1_loss
             l1_loss = T.tensor(0., requires_grad=True)
-            for param in model.LinearRegression.parameters():
-                l1_loss = l1_loss + T.norm(param, p=1) # p=1 is norm 1
+            # for param in model.LinearRegression.parameters():
+            #     l1_loss = l1_loss + T.norm(param, p=1) # p=1 is norm 1
+            for name, param in model.named_parameters():
+                # if 'bias' not in name:
+                l1_loss = l1_loss + T.norm(param, 2)
             loss_val = loss_val_mse + l1_coeff * l1_loss
             epoch_loss += loss_val.item()        # accumulate avgs
             loss_val.backward()                  # compute gradients

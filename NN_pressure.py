@@ -1,4 +1,3 @@
-import metrics_normalization as mn
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -146,7 +145,7 @@ class MyPlots():
         plt.xlabel('epoch')
         plt.ylabel('loss')
         plt.legend()
-        plt.savefig('D:\\Marcelo\\github\\Thesis\\Images\\changing_pressure\\loss_curve.png')
+        plt.savefig('Images\\changing_pressure\\loss_curve.png')
     
     def plot_predict_target(self, predict, target, sort_by_target= False):
         npoints = len(predict)
@@ -182,7 +181,7 @@ if __name__=='__main__':
     T.manual_seed(10) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'D:\\Marcelo\\github\\Thesis\\data\\datapoints_pressure_1k.txt' 
+    src_file = 'data\\datapoints_pressure_1k.txt' 
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
@@ -281,7 +280,7 @@ if __name__=='__main__':
 
     # Plot k's of training set
     for idx in range(len(train_predictions[0])):
-        filename = 'D:\\Marcelo\\github\\Thesis\\Images\\changing_pressure\\ks\\k' + str(idx+1)+'.png'
+        filename = 'Images\\changing_pressure\\ks\\k' + str(idx+1)+'.png'
         plt.clf()
         a = y_train[:,idx] # target
         b = train_predictions[:,idx] # predicted
@@ -297,7 +296,7 @@ if __name__=='__main__':
 
     # Create a scatter plot of the two arrays against each other
     for idx in range(len(predict[0])):
-        filename = 'D:\\Marcelo\\github\\Thesis\\Images\\changing_pressure\\ks\\training_correlations_' + species[idx]+'.png'
+        filename = 'Images\\changing_pressure\\ks\\training_correlations_' + species[idx]+'.png'
         plt.clf()
         plt.scatter(target[:,idx+1], predict[:,idx])
         # Add labels and a title
@@ -310,7 +309,7 @@ if __name__=='__main__':
 
     # Plot densities using LoKI surrogate (forward) --------------------------------------------------------
     for idx in range(len(predict[0])):
-        filename = 'D:\\Marcelo\\github\\Thesis\\Images\\changing_pressure\\ks\\training_forward_' + species[idx]+'.png'
+        filename = 'Images\\changing_pressure\\ks\\training_forward_' + species[idx]+'.png'
         plt.clf()
         a = target[:,idx+1] # target
         b = predict[:,idx] # predicted

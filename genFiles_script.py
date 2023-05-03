@@ -255,13 +255,8 @@ if __name__ == '__main__':
     chem_file = "oxygen_novib.chem" 
     setup_file = "oxygen_chem_setup_novib.in"
 
-<<<<<<< Updated upstream
-    # k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 10
-=======
     k_columns = [0,1,2] # if None, changes all columns
     n_simulations = 3000
->>>>>>> Stashed changes
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
