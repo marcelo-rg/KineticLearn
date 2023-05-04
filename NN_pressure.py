@@ -88,11 +88,11 @@ class Net(nn.Module):
 class Net_forward(nn.Module):
     def __init__(self):
         super(Net_forward, self).__init__()
-        self.hid1 = nn.Linear(4,10)  # hidden 1
-        self.hid2 = nn.Linear(10, 10) # hidden 2
-        self.oupt = nn.Linear(10, 3)  # output
+        self.hid1 = nn.Linear(4,100)  # hidden 1
+        # self.hid2 = nn.Linear(10, 10) # hidden 2
+        self.oupt = nn.Linear(100, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
-        T.nn.init.xavier_uniform_(self.hid2.weight)
+        # T.nn.init.xavier_uniform_(self.hid2.weight)
 
     
     def weights_init(self,m):
@@ -101,7 +101,7 @@ class Net_forward(nn.Module):
 
     def forward(self, x):
         z = T.relu(self.hid1(x)) 
-        z = T.relu(self.hid2(z))
+        # z = T.relu(self.hid2(z))
         z = self.oupt(z)  # no activation
         return z
 
@@ -178,7 +178,7 @@ def param_norm():
 
 if __name__=='__main__':
 
-    T.manual_seed(10) # recover reproducibility
+    T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
     src_file = 'data\\datapoints_pressure_3k.txt' 
@@ -321,41 +321,41 @@ if __name__=='__main__':
 
     #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    # test_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3.txt'
-    # all_xy =  np.loadtxt(test_file,
-    #     usecols=[0,1,2,3,4,5,6,7,8,9,10,11], delimiter="  ",
-    #     # usecols=range(0,9), delimiter="\t",
-    #     comments="#", skiprows=0, dtype=np.float64)
+    test_file = 'data\\datapoints_pressure_test.txt'
+    all_xy =  np.loadtxt(test_file,
+        usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
+        # usecols=range(0,9), delimiter="\t",
+        comments="#", skiprows=0, dtype=np.float64)
 
-    # tmp_x = all_xy[:,[9,10,11]]  # Change this manually
-    # tmp_y = all_xy[:,k_columns] 
+    tmp_x = all_xy[:,[9,10,11,12]]  # Change this manually
+    tmp_y = all_xy[:,k_columns] 
 
-    # # Normalize data
-    # tmp_x = full_dataset.scaler_max_abs.transform(tmp_x)
-    # tmp_y = full_dataset.scaler.transform(tmp_y)
+    # Normalize data
+    tmp_x = full_dataset.scaler_max_abs.transform(tmp_x)
+    tmp_y = full_dataset.scaler.transform(tmp_y)
 
-    # x_data = T.tensor(tmp_x, \
-    #     dtype=T.float64).to(device)
-    # y_data = T.tensor(tmp_y, \
-    #     dtype=T.float64).to(device)
+    x_data = T.tensor(tmp_x, \
+        dtype=T.float64).to(device)
+    y_data = T.tensor(tmp_y, \
+        dtype=T.float64).to(device)
 
-    # predict =  net(x_data).detach().numpy()
-    # target = y_data.numpy()
-    # densities = x_data.numpy()
+    predict =  net(x_data).detach().numpy()
+    target = y_data.numpy()
+    densities = x_data.numpy()
 
-    # np.savetxt("seed_1.txt", predict)
-    # # Plot k's of test set
-    # for idx in range(len(predict[0])):
-    #     filename = 'D:\\Marcelo\\github\\Thesis\\Images\\k_test_' + str(idx+1)+'.png'
-    #     plt.clf()
-    #     a = target[:,idx] # target
-    #     b = predict[:,idx] # predicted
+    np.savetxt("seed_1.txt", predict)
+    # Plot k's of test set
+    for idx in range(len(predict[0])):
+        filename = 'D:\\Marcelo\\github\\Thesis\\Images\\k_test_' + str(idx+1)+'.png'
+        plt.clf()
+        a = target[:,idx] # target
+        b = predict[:,idx] # predicted
 
-    #     myplot.plot_predict_target(b, a, sort_by_target=True)
-    #     plt.ylabel('k'+str(k_columns[idx]+1))
-    #     plt.savefig(filename)
+        myplot.plot_predict_target(b, a, sort_by_target=True)
+        plt.ylabel('k'+str(k_columns[idx]+1))
+        plt.savefig(filename)
 
-    # # Plot densities using LoKI surrogate (forward) in test set --------------------------------------------------------
+    # Plot densities using LoKI surrogate (forward) in test set --------------------------------------------------------
     # my_x = net(x_data)
     # predict_fwd =  net_forward(my_x).detach().numpy()
     # target = x_data.numpy()
@@ -367,6 +367,43 @@ if __name__=='__main__':
     #     myplot.plot_predict_target(b, a, sort_by_target=True)
     #     plt.ylabel(species[idx])
     #     plt.savefig(filename)
+
+    # Create a scatter plot of the two densitie arrays against each other
+    predict_fwd = net_forward(T.cat((net(x_data), x_data[:,0].unsqueeze(1)), 1)).detach().numpy() # using forward model on net output
+    for idx in range(1,len(densities[0]),1):
+        filename = 'Images\\changing_pressure\\correlations_test' + str(idx+1)+'.png'
+        plt.clf()
+        a = densities[:,idx]
+        b = predict_fwd[:,idx-1]
+        plt.scatter(a, b)
+
+        rel_err = np.abs(np.subtract(a,b)/a)
+        # print(rel_err)
+        # print("stats: ",stats.chisquare(f_obs= b, f_exp= a))
+
+        textstr = '\n'.join((
+        r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean()*100, ),
+        r'$Max\ \epsilon_{rel}=%.2f$%%' % (max(rel_err)*100, )))
+
+        # colour point o max error
+        max_index = np.argmax(rel_err)
+        plt.scatter(a[max_index],b[max_index] , color="gold", zorder= 2)
+
+        # these are matplotlib.patch.Patch properties
+        props = dict(boxstyle='round', alpha=0.5) #, facecolor='none', edgecolor='none')
+
+        # place a text box in upper left in axes coords
+        plt.text(0.70, 0.25, textstr, fontsize=14,  transform=plt.gca().transAxes,
+            verticalalignment='top', bbox=props)
+
+
+        # Add labels and a title
+        plt.xlabel('True densities')
+        plt.ylabel('Predicted densities')
+        plt.title(species[idx-1])
+        # Add a diagonal line representing perfect agreement
+        plt.plot([0, 1], [0, 1], linestyle='--', color='k')
+        plt.savefig(filename)
 
 
     # #---------------------------SAVE THE PREDICTED k'S TO BE INSERTED IN THE SIMULATION AGAIN--------------------------------
