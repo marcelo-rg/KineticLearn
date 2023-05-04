@@ -72,12 +72,12 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # The Linear() class defines a fully connected network layer
-        self.hid1 = nn.Linear(4,10)  # hidden 1
-        self.hid2 = nn.Linear(10, 10) # hidden 2
-        # self.hid3 = nn.Linear(10, 10) # hidden 3
-        self.oupt = nn.Linear(10, 3)  # output
+        self.hid1 = nn.Linear(4,100)  # hidden 1
+        # self.hid2 = nn.Linear(50, 50) # hidden 2
+        # self.hid3 = nn.Linear(50, 50) # hidden 3
+        self.oupt = nn.Linear(100, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
-        T.nn.init.xavier_uniform_(self.hid2.weight)
+        # T.nn.init.xavier_uniform_(self.hid2.weight)
         # T.nn.init.xavier_uniform(self.hid3.weight)
 
     # Missing initialization of weights
@@ -87,7 +87,7 @@ class Net(nn.Module):
 
     def forward(self, x):
         z = T.relu(self.hid1(x)) # try also relu activ. f.
-        z = T.relu(self.hid2(z))
+        # z = T.relu(self.hid2(z))
         # z = T.tanh(self.hid3(z))
         z = self.oupt(z)  # no activation
         return z
@@ -118,7 +118,7 @@ def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
 src_file = 'data\\datapoints_pressure_3k.txt' 
 full_dataset = LoadDataset(src_file) 
 
-T.manual_seed(17)  # recover reproducibility
+T.manual_seed(8)  # recover reproducibility
 
 # 2. create network
 net = Net().to(device)
