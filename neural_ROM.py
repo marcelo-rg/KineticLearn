@@ -246,7 +246,7 @@ if __name__ == '__main__':
     # 4. Choose loss and optimizer
     loss_func = T.nn.MSELoss()
     # loss_mse = T.nn.MSELoss()
-    optimizer = T.optim.Adam(model.parameters(), lr=lrn_rate, weight_decay=1e-4)
+    optimizer = T.optim.Adam(model.parameters(), lr=lrn_rate)#, weight_decay=1e-4)
 
     # Split into training and validation sets | samples_dataset -> full_dataset
     train_size = int(0.90 * len(full_dataset))
