@@ -1,4 +1,3 @@
-import metrics_normalization as mn
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
@@ -73,12 +72,12 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # The Linear() class defines a fully connected network layer
-        self.hid1 = nn.Linear(3,10)  # hidden 1
-        self.hid2 = nn.Linear(10, 10) # hidden 2
+        self.hid1 = nn.Linear(3,100)  # hidden 1
+        # self.hid2 = nn.Linear(10, 10) # hidden 2
         # self.hid3 = nn.Linear(10, 10) # hidden 3
-        self.oupt = nn.Linear(10, 3)  # output
+        self.oupt = nn.Linear(100, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
-        T.nn.init.xavier_uniform_(self.hid2.weight)
+        # T.nn.init.xavier_uniform_(self.hid2.weight)
         # T.nn.init.xavier_uniform(self.hid3.weight)
 
     # Missing initialization of weights
@@ -87,8 +86,8 @@ class Net(nn.Module):
 
 
     def forward(self, x):
-        z = T.tanh(self.hid1(x)) # try also relu activ. f.
-        z = T.tanh(self.hid2(z))
+        z = T.relu(self.hid1(x)) # try also relu activ. f.
+        # z = T.tanh(self.hid2(z))
         # z = T.tanh(self.hid3(z))
         z = self.oupt(z)  # no activation
         return z
@@ -116,7 +115,7 @@ def save_checkpoint(state, filename= "checkpoint_forward_k1k2k3_minmax.pth.tar")
 
 
 #------------------------------------------------------------------------------------
-src_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3_3k.txt' #datapoints500_k1k2k3
+src_file = 'data\\datapointsk1k2k3_3k.txt' #datapoints500_k1k2k3
 full_dataset = LoadDataset(src_file) #,m_rows=500) 
 
 T.manual_seed(10)  # recover reproducibility
@@ -225,7 +224,7 @@ myplot.configure()
 species = ['O2(X)','O2(a)', 'O(3P)']
 # Plot densities of training set
 for idx in range(len(train_predictions[0])):
-    filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\species\\' + species[idx]+'.png'
+    filename = 'Images\\species\\' + species[idx]+'.png'
     plt.clf()
     a = y_train[:,idx] # target
     b = train_predictions[:,idx] # predicted
@@ -258,7 +257,7 @@ plt.plot(myplot.epoch_list, myplot.val_loss_list, '-o', label = 'validation')
 plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.legend()
-plt.savefig('C:\\Users\\clock\\Desktop\\Python\\Images\\loss_curve.png')
+plt.savefig('Images\\loss_curve.png')
 
 
 # # Print mean rel. error
@@ -275,7 +274,7 @@ plt.savefig('C:\\Users\\clock\\Desktop\\Python\\Images\\loss_curve.png')
 
 # #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 #Evaluation on a 10 point test set:
-test_file = 'C:\\Users\\clock\\Desktop\\Python\\datapointsk1k2k3.txt'
+test_file = 'data\\datapointsk1k2k3.txt'
 all_xy =  np.loadtxt(test_file,
       usecols=[0,1,2,3,4,5,6,7,8,9,10,11], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",
@@ -323,7 +322,7 @@ densities = x_data.numpy()
 
 # Plot densities of test set
 for idx in range(len(predict[0])):
-    filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\species\\species_test_' + species[idx]+'.png'
+    filename = 'Images\\species\\species_test_' + species[idx]+'.png'
     plt.clf()
     # plt.xticks(np.arange(1, len(target[:,0]), 1))
     # plt.figure(figsize=(46.82 * .5**(.5 * A), 33.11 * .5**(.5 * A)))
@@ -340,7 +339,7 @@ for idx in range(len(predict[0])):
 
 # Create a scatter plot of the two densitie arrays against each other
 for idx in range(len(predict[0])):
-    filename = 'C:\\Users\\clock\\Desktop\\Python\\Images\\species\\correlations_test' + str(idx+1)+'.png'
+    filename = 'Images\\species\\correlations_test' + str(idx+1)+'.png'
     plt.clf()
     a = target[:,idx]
     b = predict[:,idx]
@@ -373,6 +372,9 @@ for idx in range(len(predict[0])):
     # Add a diagonal line representing perfect agreement
     plt.plot([0, 1], [0, 1], linestyle='--', color='k')
     plt.savefig(filename)
+
+
+print(myplot.epoch_loss_list[-1])
 
 
 # print(full_dataset.my_standardize.std , full_dataset.my_standardize.mean)
