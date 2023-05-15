@@ -111,6 +111,11 @@ def load_checkpoint(checkpoint):
     print("=> Loading checkpoint")
     net_forward.load_state_dict(checkpoint['state_dict'])
 
+def load_checkpoint2(checkpoint):
+    # checkpoint = T.Load(file)
+    print("=> Loading checkpoint")
+    net.load_state_dict(checkpoint['state_dict'])
+
 # ------------------------------------------------------------------------------
 
 def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
@@ -197,6 +202,10 @@ if __name__=='__main__':
     net = Net().to(device)
     net.to(T.double) # set model to float64
 
+    # Load NeuralNet model
+    load_checkpoint2(T.load("checkpoint_pressure_model.pth.tar"))
+    net.eval()
+
     # 3. Build training Model
     max_epochs = 1000
     ep_log_interval =20
@@ -214,96 +223,51 @@ if __name__=='__main__':
     optimizer = T.optim.Adam(net.parameters(), lr=lrn_rate) # , weight_decay=1e-4)
 
     # Split into training and validation sets
-    train_size = int(0.90 * len(full_dataset))
-    test_size = len(full_dataset) - train_size
-    train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
+    # train_size = int(0.90 * len(full_dataset))
+    # test_size = len(full_dataset) - train_size
+    # train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
 
     # Create minibatch on training set
-    bat_size= 1000
-    train_loader = T.utils.data.DataLoader(train_dataset,
-        batch_size=bat_size, shuffle=True) # set to True
+    # bat_size= 1000
+    # train_loader = T.utils.data.DataLoader(full_dataset,
+    #     batch_size=bat_size, shuffle=True) # set to True
     
     # Extract x and y of validation set
-    x_val = val_dataset[:][0]
-    y_val = val_dataset[:][1]
+    # x_val = val_dataset[:][0]
+    # y_val = val_dataset[:][1]
     
     # Initialize data structures to store info
     myplot = MyPlots() 
 
     # 5. Training algorithm
-    print("Start training\n")
-    for epoch in range(0, max_epochs):
-        epoch_loss = 0  # for one full epoch
-
-        net.train()  # set mode
-
-        for (batch_idx, batch) in enumerate(train_loader):
-            (X_batch, Y_batch) = batch           # (predictors, targets)
-            optimizer.zero_grad()                # prepare gradients
-            oupt = net(X_batch)                  # predicted rate coefficients
-            loss_val_loki = loss_func(oupt, X_batch)  
-            loss_val_mse = loss_mse(oupt, Y_batch)
-            loss_val = loss_val_loki #+ loss_val_mse  # avg per item in batch
-            epoch_loss += loss_val.item()        # accumulate avgs
-            loss_val.backward()                  # compute gradients
-            optimizer.step()                     # update wts
-            n_batches = batch_idx+1              # save number of batches
-
-        #-------------------------------------------------------------
-        # Print and save loss and errors
-        if (epoch % ep_log_interval) == 0:
-            myplot.epoch_list.append(epoch)
-            myplot.epoch_loss_list.append(loss_val_mse.item()/n_batches)
-            myplot.epoch_loss_list_loki.append(loss_val_loki.item()/n_batches)
-
-            net.eval() # (?)
-            prediction = net(x_val)
-            # loss_val = loss_func(prediction, y_val)
-            loss_val = loss_func(prediction, x_val) #+ loss_func(prediction,y_val)
-            # loss_val = loss_mse(prediction, y_val) 
-            myplot.val_loss_list.append(loss_val.item())
-
-            print("epoch = %4d   loss = %0.4f   validation_loss= %0.4f,  param_norm = %0.4f" % \
-            (epoch, epoch_loss/n_batches, loss_val.item(), param_norm()))
-        #--------------------------------------------------------------
-
-        if (epoch == max_epochs-1):
-            checkpoint = {'state_dict': net.state_dict(), 'optimizer': optimizer.state_dict()}
-            save_checkpoint(checkpoint, filename= "checkpoint_pressure_model.pth.tar") # note: it is saving in the cwd
-
-    print("Training complete \n")
-
-    print("\ntotal parameters' norm: ", param_norm())
-
-
-    # --------------------------------------EVALUATION OF TRAINING SET--------------------------------------------
-    train_predictions = net(train_dataset[:][0]).detach().numpy()
-    y_train = train_dataset[:][1].numpy()
-
-    val_predictions = net(x_val).detach().numpy()
-    y_val = y_val.numpy()
+    # print("No training\n")
+    
+    
+    # --------------------------------------EVALUATION OF Test SET--------------------------------------------
+    test_predictions = net(full_dataset[:][0]).detach().numpy() # k's 
+    y_test = full_dataset[:][1].numpy() 
 
     # Set matplotlib fig. size, etc...
     myplot.configure()
 
     # Plot loss curves
-    myplot.plot_loss_curves()
+    # myplot.plot_loss_curves()
 
     # Plot k's of training set
-    for idx in range(len(train_predictions[0])):
-        filename = 'Images\\changing_pressure\\ks\\k' + str(idx+1)+'.png'
+    for idx in range(len(test_predictions[0])):
+        filename = 'Images\\changing_pressure\\fixedK\\k' + str(idx+1)+'.png'
         plt.clf()
-        a = y_train[:,idx] # target
-        b = train_predictions[:,idx] # predicted
-        myplot.plot_predict_target(b, a, sort_by_target=True)
+        a = y_test[:,idx] # target
+        b = test_predictions[:,idx] # predicted
+        myplot.plot_predict_target(b, a, sort_by_target=False)
         plt.title('k'+str(k_columns[idx]+1))
         plt.savefig(filename)
 
-
+    exit()
     # concatenate input pressure, train_dataset[:][0] first column, with net(train_dataset[:][0]) 
-    predicted_k = net(train_dataset[:][0])
-    predict = net_forward(T.cat((predicted_k, train_dataset[:][0][:,0].unsqueeze(1)), 1)).detach().numpy()
-    target = train_dataset[:][0] # input densities
+    predicted_k = net(full_dataset[:][0])
+    predict = net_forward(T.cat((predicted_k, full_dataset[:][0][:,0].unsqueeze(1)), 1)).detach().numpy()
+    target = full_dataset[:][0] # input densities
 
     # Create a scatter plot of the two arrays against each other
     for idx in range(len(predict[0])):

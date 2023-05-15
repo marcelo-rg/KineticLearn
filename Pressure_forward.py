@@ -174,7 +174,7 @@ for epoch in range(0, max_epochs):
 
     if (epoch == max_epochs-1):
       checkpoint = {'state_dict': net.state_dict(), 'optimizer': optimizer.state_dict()}
-      save_checkpoint(checkpoint, ) # note: it is saving in the documents
+      save_checkpoint(checkpoint, ) # note: it is saving in the cwd
 
     net.train()  # set mode
 
