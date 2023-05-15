@@ -5,6 +5,7 @@ import torch as T
 import torch.nn as nn
 device = T.device("cpu")
 from sklearn import preprocessing
+import os
 
 
 # -----------------------------------------------------------
@@ -193,10 +194,15 @@ if __name__=='__main__':
     T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints_pressure_3k.txt' 
+    src_file = 'data\\datapoints_fixed_test.txt' 
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
-    full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
+    # full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
+    full_dataset = np.loadtxt(src_file, max_rows=None,
+        usecols=[0,1,2,3], delimiter="  ",
+        # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
+        comments="#", skiprows=0, dtype=np.float64)
+    full_dataset = T.tensor(full_dataset, dtype=T.float64).to(device)
 
     # 2. Create neural network
     net = Net().to(device)
@@ -244,8 +250,30 @@ if __name__=='__main__':
     
     
     # --------------------------------------EVALUATION OF Test SET--------------------------------------------
-    test_predictions = net(full_dataset[:][0]).detach().numpy() # k's 
-    y_test = full_dataset[:][1].numpy() 
+    training_dataset  = LoadDataset("data\\datapoints_pressure_3k.txt", nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
+    # Read fixed k values from chem file
+    chem_file = 'O2_simple_1.chem'
+    cwd = os.getcwd() # read current working directory 
+
+    with open(cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+        values = []
+        for line in file:
+            values.append(line.split()[-2])
+    # create a numpy array with the k values of type float
+    k = np.array(values)
+    k = k.astype(float)
+    # ---------------------------------------------------------------
+    # scale the full_dataset
+    scaled_full_dataset = T.tensor(training_dataset.scaler_max_abs.transform(full_dataset.numpy())).to(device)
+    # print("full_dataset: ", full_dataset)
+    test_predictions = net(scaled_full_dataset) # k's predicted by the NN
+    # print("test_predictions: ", test_predictions)
+    y_test = k # fixed k's from the chem file
+
+    # inverse transform the predicted k's to be compared with the fixed values from the chem file
+    test_predictions = training_dataset.scaler.inverse_transform(test_predictions.detach().numpy())
+    print(test_predictions)
+  
 
     # Set matplotlib fig. size, etc...
     myplot.configure()
@@ -253,15 +281,30 @@ if __name__=='__main__':
     # Plot loss curves
     # myplot.plot_loss_curves()
 
+    # verify the max and min values of the densities
+    densities_training = training_dataset.scaler_max_abs.inverse_transform( training_dataset.x_data.numpy())
+    print("max densities training: ", np.max(densities_training, axis=0))
+    print("min densities training: ", np.min(densities_training, axis=0))
+
+    densities_test = full_dataset.numpy()
+    print("max densities test: ", np.max(densities_test, axis=0))
+    print("min densities test: ", np.min(densities_test, axis=0))
+    # exit()
+
     # Plot k's of training set
     for idx in range(len(test_predictions[0])):
         filename = 'Images\\changing_pressure\\fixedK\\k' + str(idx+1)+'.png'
         plt.clf()
-        a = y_test[:,idx] # target
+        a = y_test[idx] # target
         b = test_predictions[:,idx] # predicted
-        myplot.plot_predict_target(b, a, sort_by_target=False)
+        # print(a)
+        # print(b)
+        plt.hist(b, bins= 50, alpha= 0.5, label= 'predicted')
+        # plot a line at the fixed k value
+        plt.axvline(x=a, color='r', linestyle='dashed', linewidth=2, label= 'fixed k')
         plt.title('k'+str(k_columns[idx]+1))
         plt.savefig(filename)
+        # exit()
 
     exit()
     # concatenate input pressure, train_dataset[:][0] first column, with net(train_dataset[:][0]) 

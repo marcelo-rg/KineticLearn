@@ -259,11 +259,11 @@ if __name__ == '__main__':
     n_simulations = 100
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    simul.random_kset(k_columns, krange=[1,10]) 
-    simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 1133.322 Pa
+    simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
+    # simul.random_kset(k_columns, krange=[1,10]) 
+    simul.random_pressure_set(pressure= 133.322, pressure_range=[0.5,1.5]) # 1 Torr = 1133.322 Pa
     # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_pressure_test.txt')
+    simul.writeDataFile(filename='datapoints_fixed_test2.txt')
