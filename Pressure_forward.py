@@ -42,8 +42,6 @@ class LoadDataset(T.utils.data.Dataset):
 
 
 
-
-
     #tmp_x = standardize(tmp_x)
     #tmp_y = np.log(tmp_y)
     #tmp_y = standardize(tmp_y)
