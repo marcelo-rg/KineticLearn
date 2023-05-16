@@ -19,7 +19,7 @@ class LoadDataset(T.utils.data.Dataset):
             # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
             comments="#", skiprows=0, dtype=np.float64)
 
-        self.scaler = preprocessing.MinMaxScaler()
+        self.scaler = preprocessing.MaxAbsScaler()
         self.scaler_max_abs = preprocessing.MaxAbsScaler()  
 
         ncolumns = len(all_xy[0])
@@ -29,11 +29,15 @@ class LoadDataset(T.utils.data.Dataset):
             y_columns = np.arange(0,ncolumns-nspecies,1)
 
         tmp_x = all_xy[:,x_columns] # pressure and densities
-        tmp_y = all_xy[:,y_columns] # k's 
+        tmp_y = all_xy[:,y_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17
+
 
         # Normalize data
         self.scaler.fit(tmp_y) 
+        # print(tmp_y)
         tmp_y = self.scaler.transform(tmp_y)
+        # print(tmp_y)
+
 
         self.scaler_max_abs.fit(tmp_x) 
         tmp_x = self.scaler_max_abs.transform(tmp_x)
@@ -188,17 +192,19 @@ if __name__=='__main__':
     T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints.txt'  # 'data\\datapoints_pressure_3k.txt'
+    src_file = 'data\\datapoints_pressure_0.1to1.txt'  # 'data\\datapoints_pressure_3k.txt'
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
+    print("xdata: ", full_dataset.y_data)
+    exit()
 
     # 2. Create neural network
     net = Net().to(device)
     net.to(T.double) # set model to float64
 
     # 3. Build training Model
-    max_epochs = 1000
+    max_epochs = 100
     ep_log_interval =20
     lrn_rate = 0.01
 
@@ -279,6 +285,8 @@ if __name__=='__main__':
     # --------------------------------------EVALUATION OF TRAINING SET--------------------------------------------
     train_predictions = net(train_dataset[:][0]).detach().numpy()
     y_train = train_dataset[:][1].numpy()
+    print(y_train)
+    exit()
 
     val_predictions = net(x_val).detach().numpy()
     y_val = y_val.numpy()

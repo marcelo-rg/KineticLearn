@@ -22,7 +22,7 @@ class LoadDataset(T.utils.data.Dataset):
       # usecols=range(0,9), delimiter="\t",
       comments="#", skiprows=0, dtype=np.float64)
 
-    tmp_x = all_xy[:,[0,1,2,9]] # [0,1,2]
+    tmp_x = all_xy[:,[0,1,2,9]]*10 # [0,1,2]
     tmp_y = all_xy[:,[10,11,12]] 
     #[0,1,2,3,4,5,6,7,8]
 
@@ -71,11 +71,11 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # The Linear() class defines a fully connected network layer
         self.hid1 = nn.Linear(4,100)  # hidden 1
-        self.hid2 = nn.Linear(100, 50) # hidden 2
+        # self.hid2 = nn.Linear(100, 50) # hidden 2
         # self.hid3 = nn.Linear(50, 50) # hidden 3
-        self.oupt = nn.Linear(50, 3)  # output
+        self.oupt = nn.Linear(100, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
-        T.nn.init.xavier_uniform_(self.hid2.weight)
+        # T.nn.init.xavier_uniform_(self.hid2.weight)
         # T.nn.init.xavier_uniform(self.hid3.weight)
 
     # Missing initialization of weights
@@ -85,7 +85,7 @@ class Net(nn.Module):
 
     def forward(self, x):
         z = T.relu(self.hid1(x)) # try also relu activ. f.
-        z = T.relu(self.hid2(z))
+        # z = T.relu(self.hid2(z))
         # z = T.tanh(self.hid3(z))
         z = self.oupt(z)  # no activation
         return z
@@ -113,7 +113,7 @@ def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
 
 
 #------------------------------------------------------------------------------------
-src_file = 'data\\datapoints_pressure_0.5to1.5.txt'  #'data\\datapoints_pressure_3k.txt' 
+src_file = 'data\\datapoints_pressure_0.1to1.txt'  #'data\\datapoints_pressure_3k.txt' 
 full_dataset = LoadDataset(src_file) 
 
 T.manual_seed(4)  # recover reproducibility

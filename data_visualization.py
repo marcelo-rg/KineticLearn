@@ -33,13 +33,13 @@ class LoadDataset(T.utils.data.Dataset):
 
     # Normalize data
     scaler_max_abs.fit(tmp_y)
-    tmp_y = scaler_max_abs.transform(tmp_y)
+    # tmp_y = scaler_max_abs.transform(tmp_y)
     # scaler.fit(tmp_y) # standard scaler
     # tmp_y = scaler.transform(tmp_y)
 
     #scale k's
     scaler.fit(tmp_x) # standard scaler
-    tmp_x = scaler.transform(tmp_x)
+    # tmp_x = scaler.transform(tmp_x)
 
 
 
@@ -75,7 +75,7 @@ class LoadDataset(T.utils.data.Dataset):
 #------------------------------------------------------------------------------------
 
 
-src_file = 'data\\datapoints_pressure_3k.txt'
+src_file = 'data\\datapoints_pressure_0.1to1.txt'
 full_dataset = LoadDataset(src_file) #,m_rows=500) 
 
 x_data = full_dataset.x_data
@@ -128,13 +128,13 @@ fig = plt.figure(figsize = (10, 7))
 ax = plt.axes(projection ="3d")
 plt.rcParams["figure.autolayout"] = True
 
-density0 = x_data[:,0].numpy()
-density1 = x_data[:,1].numpy()
-density2 = x_data[:,2].numpy()
+density0 = y_data[:,0].numpy()
+density1 = y_data[:,1].numpy()
+density2 = y_data[:,2].numpy()
 
-k1 = y_data[:,0].numpy()
-k2 = y_data[:,1].numpy()
-k3 = y_data[:,2].numpy()
+k1 = x_data[:,0].numpy()
+k2 = x_data[:,1].numpy()
+k3 = x_data[:,2].numpy()
 pressure = x_data[:,3].numpy()
 
 
@@ -148,7 +148,7 @@ print( len(k1), " training points")
 
 Label = ["O2(X)","O2(a)", "O(3P)"]
 # add colormap hvs to the scatter 3D plot
-ax.scatter3D(k1, k2, pressure, c=density0, cmap='hsv', label= Label[0])
+ax.scatter3D(k1, k2, pressure, c=density1, cmap='hsv', label= Label[1])
 
 
 
@@ -159,7 +159,7 @@ ax.scatter3D(k1, k2, pressure, c=density0, cmap='hsv', label= Label[0])
 ##
 # ax.scatter3D(k0, k1, density1, color = "orange", label= "O2(a)")
 # ax.scatter3D(k0, k1, density2, color = "green", label= "O(P)")
-plt.title(Label[0])
+plt.title(Label[1])
 ax.set_xlabel('k1', fontsize=15)
 ax.set_ylabel('k2', fontsize=15)
 ax.set_zlabel('pressure', fontsize=15)
