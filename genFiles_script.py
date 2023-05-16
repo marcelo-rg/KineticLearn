@@ -18,8 +18,12 @@ class Parameters():
         self.electDensity_set  = None
     
     # protect these methods
-    def morris_kset(self, p, r, k_range_type, k_range, kcolumns):
-        self.k_set =  morris.MorrisSampler(p, r, k_range_type, k_range, indexes= kcolumns)
+    def morris_kset(self, k , p, r, k_range_type, k_range, kcolumns):
+        if k is None:
+            print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
+            exit()
+
+        self.k_set =  morris.MorrisSampler(k, p, r, k_range_type, k_range, indexes= kcolumns)
 
 
     def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
@@ -82,7 +86,7 @@ class Simulations():
         else:
             k= None
 
-        self.parameters.morris_kset(p, r, k_range_type, k_range, indexes=kcolumns)
+        self.parameters.morris_kset(k, p, r, k_range_type, k_range, kcolumns)
 
     def random_kset(self, kcolumns = None, krange= [1, 10]): 
         # read the k values from the chem file (to be used in the random_kset method)
@@ -280,10 +284,10 @@ if __name__ == '__main__':
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    simul.random_kset(k_columns, krange=[0.1,1.]) 
+    simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
     # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
-    
+    # print( simul.parameters.k_set.shape)
     # Run simulations
-    simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_pressure_0.1to1.txt')
+    # simul.runSimulations()
+    # simul.writeDataFile(filename='datapoints_pressure_0.1to1.txt')

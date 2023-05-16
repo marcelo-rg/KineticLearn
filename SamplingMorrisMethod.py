@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+random.seed(101)
 
 # 1. Morris Sampling - use the same fixed bounds for all inputs - part I
 def MorrisSampler(k_real, p, r, k_range_type, k_range, indexes=None):
@@ -27,9 +28,9 @@ def MorrisSampler(k_real, p, r, k_range_type, k_range, indexes=None):
     # create starting nodes
     start_nodes = []
     for i in range(r):
-        start_nodes.append(np.random.uniform(w[0],w[p-1], size=(r, k_size)))
-    print("start_nodes: ", start_nodes)
-    print("start_nodes.shape: ", np.array(start_nodes).shape)
+        start_nodes.append(random.choices(w,k= k_size)) # maybe use random.sample instead to avoid duplicates
+    # print("start_nodes: ", start_nodes)
+    # print("start_nodes.shape: ", np.array(start_nodes).shape)
     # create trajectories
     trajectories = []
 
@@ -39,19 +40,20 @@ def MorrisSampler(k_real, p, r, k_range_type, k_range, indexes=None):
         order = random.sample(range(0,k_size), k_size) # generate updating order
 
         # add the remaining nodes
+        current_node = start_node.copy()
         for i in order:
-            new_node = start_node.copy()
+            new_node = current_node.copy()
 
-            if(new_node[traj_idx, i]/mean_point>1): # if it lies in the second half of the range interval
-                new_node[traj_idx, i] = new_node[traj_idx, i]-delta
+            if(new_node[i]/mean_point>1): # if it lies in the second half of the range interval
+                new_node[i] = new_node[i]-delta
             else:
-                new_node[traj_idx, i] = new_node[traj_idx, i]+delta
+                new_node[i] = new_node[i]+delta
 
             trajectory.append(new_node)
+            current_node = new_node
         
         # save current trajectory
         trajectories.append(trajectory)
-        
 
     reshaped_traj =  np.reshape(trajectories, (r*(k_size+1),-1))  # r * (k+1) sets of inputs
     print("trajectories shape: ", np.array(reshaped_traj).shape)
@@ -63,11 +65,11 @@ def MorrisSampler(k_real, p, r, k_range_type, k_range, indexes=None):
     k_set=[]
     for item in k_real:
         k_set.append(np.full(n_inputs, item))
-    print(np.array(k_set).shape)
 
     for (i, k_idx) in enumerate(indexes):
         k_set[k_idx] =  reshaped_traj[:,i]* k_real[k_idx]
 
+    print(np.transpose(np.array(k_set))[:,:3])
     return np.transpose(k_set)
 
 

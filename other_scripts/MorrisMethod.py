@@ -22,7 +22,7 @@ def Morris(k_real, p = 10, n_traj = 50, k_range= [0.5,1.5], indexes = None):
     # create starting nodes
     start_nodes = []
     for i in range(n_traj):
-        start_nodes.append(random.choices(w_linear,k= k_size))
+        start_nodes.append(random.choices(w_linear,k= k_size)) # maybe use random.sample instead to avoid duplicates
 
     # create trajectories
     trajectories = []
