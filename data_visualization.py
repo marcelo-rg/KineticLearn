@@ -75,7 +75,7 @@ class LoadDataset(T.utils.data.Dataset):
 #------------------------------------------------------------------------------------
 
 
-src_file = 'data\\datapoints_pressure_0.5to1.5.txt'
+src_file = 'data\\datapoints_pressure_3k.txt'
 full_dataset = LoadDataset(src_file) #,m_rows=500) 
 
 x_data = full_dataset.x_data

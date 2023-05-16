@@ -2,6 +2,7 @@ import numpy as np
 import matlab.engine
 import os
 import re
+import SamplingMorrisMethod as morris
 np.random.seed(10) # Recover reproducibility
 
 #-----------------------------------------------------------------------------------------------------
@@ -17,6 +18,10 @@ class Parameters():
         self.electDensity_set  = None
     
     # protect these methods
+    def morris_kset(self, p, r, k_range_type, k_range, kcolumns):
+        self.k_set =  morris.MorrisSampler(p, r, k_range_type, k_range, indexes= kcolumns)
+
+
     def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
         if k is None:
             print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
@@ -63,6 +68,21 @@ class Simulations():
         if not os.path.exists(dir):
             os.makedirs(dir)
 
+
+    def morris_kset(self, p, r, k_range_type, k_range, kcolumns=None):
+        # read the k values from the chem file (to be used in the morris_kset method)
+        if self._generateChemFiles:
+            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+                values = []
+                for line in file:
+                    values.append(line.split()[-2])
+            # create a numpy array with the k values of type float
+            k = np.array(values)
+            k = k.astype(float)
+        else:
+            k= None
+
+        self.parameters.morris_kset(p, r, k_range_type, k_range, indexes=kcolumns)
 
     def random_kset(self, kcolumns = None, krange= [1, 10]): 
         # read the k values from the chem file (to be used in the random_kset method)
