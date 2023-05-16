@@ -32,12 +32,14 @@ class LoadDataset(T.utils.data.Dataset):
         tmp_x = all_xy[:,x_columns] # pressure and densities
         tmp_y = all_xy[:,y_columns] # k's 
 
+
         # Normalize data
+        self.scaler_max_abs.fit(tmp_x) 
+        tmp_x = self.scaler_max_abs.transform(tmp_x)
+
         self.scaler.fit(tmp_y) 
         tmp_y = self.scaler.transform(tmp_y)
 
-        self.scaler_max_abs.fit(tmp_x) 
-        tmp_x = self.scaler_max_abs.transform(tmp_x)
 
         self.x_data = T.tensor(tmp_x, \
             dtype=T.float64).to(device)
@@ -186,7 +188,7 @@ if __name__=='__main__':
     training_dataset  = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
 
     # Load test dataset of fixed k's
-    full_dataset = np.loadtxt('data\\datapoints_fixed_test.txt', max_rows=None,
+    full_dataset = np.loadtxt('data\\datapoints_fixed_test2.txt', max_rows=None,
         usecols=[0,1,2,3], delimiter="  ",
         # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
         comments="#", skiprows=0, dtype=np.float64)
@@ -214,7 +216,7 @@ if __name__=='__main__':
     # --------------------------------------EVALUATION OF Test SET--------------------------------------------
     # Read fixed k values from chem file
     chem_file = 'O2_simple_1.chem'
-    cwd = os.getcwd() # read current working directory 
+    cwd = os.getcwd() # get current working directory 
 
     with open(cwd + '\\simulFiles\\' + chem_file, 'r') as file :
         values = []
@@ -226,13 +228,18 @@ if __name__=='__main__':
     # ---------------------------------------------------------------
     # scale the full_dataset
     scaled_full_dataset = T.tensor(training_dataset.scaler_max_abs.transform(full_dataset.numpy())).to(device)
-    # print("full_dataset: ", full_dataset)
+    # print("full_dataset: ", scaled_full_dataset)
     test_predictions = net(scaled_full_dataset) # k's predicted by the NN
     # print("test_predictions: ", test_predictions)
-    y_test = k # fixed k's from the chem file
+    y_test = k[:3] # fixed k's from the chem file
 
     # inverse transform the predicted k's to be compared with the fixed values from the chem file
-    test_predictions = training_dataset.scaler.inverse_transform(test_predictions.detach().numpy())
+    # test_predictions = training_dataset.scaler.inverse_transform(test_predictions.detach().numpy())
+    # transform the fixed k's to be compared with the predicted k's
+    print(y_test)
+    y_test = training_dataset.scaler.transform(y_test.reshape(1,-1)).squeeze()
+    print(y_test)
+    # exit()
     # print(test_predictions)
   
 
@@ -253,31 +260,55 @@ if __name__=='__main__':
     # exit()
 
     # Plot k's of training set
+    test_predictions_numpy = test_predictions.detach().numpy()
     for idx in range(len(test_predictions[0])):
         filename = 'Images\\changing_pressure\\fixedK\\k' + str(idx+1)+'.png'
         plt.clf()
         a = y_test[idx] # target
-        b = test_predictions[:,idx] # predicted
-        # print(a)
-        # print(b)
+        b = test_predictions_numpy[:,idx] # predicted
+
         plt.hist(b, bins= 50, alpha= 0.5, label= 'predicted')
         # plot a line at the fixed k value
         plt.axvline(x=a, color='r', linestyle='dashed', linewidth=2, label= 'fixed k')
         plt.title('k'+str(k_columns[idx]+1))
         plt.savefig(filename)
-        # exit()
 
-    exit()
     # concatenate input pressure, train_dataset[:][0] first column, with net(train_dataset[:][0]) 
-    predicted_k = net(full_dataset[:][0])
-    predict = net_forward(T.cat((predicted_k, full_dataset[:][0][:,0].unsqueeze(1)), 1)).detach().numpy()
-    target = full_dataset[:][0] # input densities
+    surrog_input = T.cat((test_predictions, scaled_full_dataset[:,0].unsqueeze(1)), 1)
+    predict_densities = net_forward(surrog_input).detach().numpy()
+    target_densities = scaled_full_dataset.detach().numpy() # input densities
+    # remove the first column (pressure) from the input densities
+    target_densities = np.delete(target_densities, 0, axis=1)
+    print(predict_densities)
+
 
     # Create a scatter plot of the two arrays against each other
-    for idx in range(len(predict[0])):
-        filename = 'Images\\changing_pressure\\ks\\training_correlations_' + species[idx]+'.png'
+    for idx in range(len(predict_densities[0])):
+        filename = 'Images\\changing_pressure\\fixedK\\densities_correlations_' + str(idx) +'.png'
         plt.clf()
-        plt.scatter(target[:,idx+1], predict[:,idx])
+        a = target_densities[:,idx]
+        b = predict_densities[:,idx]
+        plt.scatter(a, b)
+
+        rel_err = np.abs(np.subtract(a,b)/a)
+        # print(rel_err)
+        # print("stats: ",stats.chisquare(f_obs= b, f_exp= a))
+
+        textstr = '\n'.join((
+        r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean()*100, ),
+        r'$Max\ \epsilon_{rel}=%.2f$%%' % (max(rel_err)*100, )))
+
+        # colour point o max error
+        max_index = np.argmax(rel_err)
+        plt.scatter(a[max_index],b[max_index] , color="gold", zorder= 2)
+        
+        # these are matplotlib.patch.Patch properties
+        props = dict(boxstyle='round', alpha=0.5) #, facecolor='none', edgecolor='none')
+
+        # place a text box in upper left in axes coords
+        plt.text(0.70, 0.25, textstr, fontsize=14,  transform=plt.gca().transAxes,
+            verticalalignment='top', bbox=props)
+
         # Add labels and a title
         plt.xlabel('True Values')
         plt.ylabel('Predictions')
@@ -285,6 +316,8 @@ if __name__=='__main__':
         # Add a diagonal line representing perfect agreement
         plt.plot([0, 1], [0, 1], linestyle='--', color='k')
         plt.savefig(filename)
+
+    exit()
 
     # Plot densities using LoKI surrogate (forward) --------------------------------------------------------
     for idx in range(len(predict[0])):
