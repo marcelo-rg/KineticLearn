@@ -173,20 +173,6 @@ class MyPlots():
         plt.plot(x_, sorted_ab[:,0], 'bo', label= 'target')
         plt.legend()
 
-
-
-#----------------------------------------------------------------------------------------
-
-# Compute norm of network weights
-def param_norm():
-    total_norm = 0
-    parameters = [p for p in net.parameters() if p.grad is not None and p.requires_grad]
-    for p in parameters:
-        param_norm = p.grad.detach().data.norm(2)
-        total_norm += param_norm.item() ** 2
-    total_norm = total_norm ** 0.5
-    return total_norm
-
 #-------------------------------------------------------------------------------------
 
 if __name__=='__main__':
@@ -194,63 +180,38 @@ if __name__=='__main__':
     T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints_fixed_test.txt' 
+    src_file = 'data\\datapoints_pressure_3k.txt' 
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
-    # full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
-    full_dataset = np.loadtxt(src_file, max_rows=None,
+    training_dataset  = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
+
+    # Load test dataset of fixed k's
+    full_dataset = np.loadtxt('data\\datapoints_fixed_test.txt', max_rows=None,
         usecols=[0,1,2,3], delimiter="  ",
         # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
         comments="#", skiprows=0, dtype=np.float64)
     full_dataset = T.tensor(full_dataset, dtype=T.float64).to(device)
 
-    # 2. Create neural network
+    # 2. Create and load neural network model
     net = Net().to(device)
     net.to(T.double) # set model to float64
-
-    # Load NeuralNet model
     load_checkpoint2(T.load("checkpoint_pressure_model.pth.tar"))
     net.eval()
 
-    # 3. Build training Model
-    max_epochs = 1000
-    ep_log_interval =20
-    lrn_rate = 0.01
-
-    # Create and load surrogate NN
+    # 3. Create and load surrogate NN
     net_forward = Net_forward().to(device)
     net_forward.to(T.double) # set model to float64
     load_checkpoint(T.load("checkpoint_forward_pressure.pth.tar"))
     net_forward.eval() # set mode
 
-    # 4. Choose loss and optimizer
+    # 4. Choose loss for metrics
     loss_func = surrogate_loss
     loss_mse = T.nn.MSELoss()
-    optimizer = T.optim.Adam(net.parameters(), lr=lrn_rate) # , weight_decay=1e-4)
-
-    # Split into training and validation sets
-    # train_size = int(0.90 * len(full_dataset))
-    # test_size = len(full_dataset) - train_size
-    # train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
-
-    # Create minibatch on training set
-    # bat_size= 1000
-    # train_loader = T.utils.data.DataLoader(full_dataset,
-    #     batch_size=bat_size, shuffle=True) # set to True
-    
-    # Extract x and y of validation set
-    # x_val = val_dataset[:][0]
-    # y_val = val_dataset[:][1]
     
     # Initialize data structures to store info
     myplot = MyPlots() 
-
-    # 5. Training algorithm
-    # print("No training\n")
-    
     
     # --------------------------------------EVALUATION OF Test SET--------------------------------------------
-    training_dataset  = LoadDataset("data\\datapoints_pressure_3k.txt", nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
     # Read fixed k values from chem file
     chem_file = 'O2_simple_1.chem'
     cwd = os.getcwd() # read current working directory 
@@ -272,7 +233,7 @@ if __name__=='__main__':
 
     # inverse transform the predicted k's to be compared with the fixed values from the chem file
     test_predictions = training_dataset.scaler.inverse_transform(test_predictions.detach().numpy())
-    print(test_predictions)
+    # print(test_predictions)
   
 
     # Set matplotlib fig. size, etc...
