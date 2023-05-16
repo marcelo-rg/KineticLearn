@@ -280,14 +280,15 @@ if __name__ == '__main__':
     setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 3000
+    n_simulations = 100
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
+    simul.random_kset(kcolumns= k_columns, krange= [0.1,1])
+    # simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
     simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
     # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
     # print( simul.parameters.k_set.shape)
     # Run simulations
-    # simul.runSimulations()
-    # simul.writeDataFile(filename='datapoints_pressure_0.1to1.txt')
+    simul.runSimulations()
+    simul.writeDataFile(filename='datapoints_pressure_test_0.1to1.txt')

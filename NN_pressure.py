@@ -29,6 +29,8 @@ class LoadDataset(T.utils.data.Dataset):
             y_columns = np.arange(0,ncolumns-nspecies,1)
 
         tmp_x = all_xy[:,x_columns] # pressure and densities
+        # multiply first column of tmp_x by 10 to avoid being at float32 precision limit 1e-17
+        tmp_x[:,0] = tmp_x[:,0]*10 # pressure*10
         tmp_y = all_xy[:,y_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17
 
 
@@ -196,15 +198,13 @@ if __name__=='__main__':
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
-    print("xdata: ", full_dataset.y_data)
-    exit()
 
     # 2. Create neural network
     net = Net().to(device)
     net.to(T.double) # set model to float64
 
     # 3. Build training Model
-    max_epochs = 100
+    max_epochs = 1000
     ep_log_interval =20
     lrn_rate = 0.01
 
@@ -285,8 +285,6 @@ if __name__=='__main__':
     # --------------------------------------EVALUATION OF TRAINING SET--------------------------------------------
     train_predictions = net(train_dataset[:][0]).detach().numpy()
     y_train = train_dataset[:][1].numpy()
-    print(y_train)
-    exit()
 
     val_predictions = net(x_val).detach().numpy()
     y_val = y_val.numpy()
@@ -340,14 +338,15 @@ if __name__=='__main__':
 
     #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    test_file = 'data\\datapoints_pressure_test_0.5to1.5.txt'
+    test_file = 'data\\datapoints_pressure_test_0.1to1.txt'
     all_xy =  np.loadtxt(test_file,
         usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
         # usecols=range(0,9), delimiter="\t",
         comments="#", skiprows=0, dtype=np.float64)
 
     tmp_x = all_xy[:,[9,10,11,12]]  # Change this manually
-    tmp_y = all_xy[:,k_columns] 
+    tmp_x[:,0] = tmp_x[:,0]*10 # pressure*10
+    tmp_y = all_xy[:,k_columns]*10
 
     # Normalize data
     tmp_x = full_dataset.scaler_max_abs.transform(tmp_x)

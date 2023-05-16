@@ -261,13 +261,13 @@ plt.savefig('Images\\changing_pressure\\loss_curve_forward.png')
 
 
 # #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
-test_file = 'data\\datapoints_pressure_test_0.5to1.5.txt'
+test_file = 'data\\datapoints_pressure_test_0.1to1.txt'
 all_xy =  np.loadtxt(test_file,
       usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",
       comments="#", skiprows=0, dtype=np.float64)
 
-tmp_x = all_xy[:,[0,1,2,9]] # [0,1,2]
+tmp_x = all_xy[:,[0,1,2,9]]*10 # [0,1,2]
 tmp_y = all_xy[:,[10,11,12]] 
 #[0,1,2,3,4,5,6,7,8]
 
