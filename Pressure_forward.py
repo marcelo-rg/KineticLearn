@@ -30,8 +30,6 @@ class LoadDataset(T.utils.data.Dataset):
     # tmp_y = self.my_standardize.standardization(tmp_y)
 
 
-
-    
     # Normalize data
     scaler_max_abs.fit(tmp_y)
     tmp_y = scaler_max_abs.transform(tmp_y)
@@ -73,11 +71,11 @@ class Net(nn.Module):
         super(Net, self).__init__()
         # The Linear() class defines a fully connected network layer
         self.hid1 = nn.Linear(4,100)  # hidden 1
-        # self.hid2 = nn.Linear(50, 50) # hidden 2
+        self.hid2 = nn.Linear(100, 50) # hidden 2
         # self.hid3 = nn.Linear(50, 50) # hidden 3
-        self.oupt = nn.Linear(100, 3)  # output
+        self.oupt = nn.Linear(50, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
-        # T.nn.init.xavier_uniform_(self.hid2.weight)
+        T.nn.init.xavier_uniform_(self.hid2.weight)
         # T.nn.init.xavier_uniform(self.hid3.weight)
 
     # Missing initialization of weights
@@ -87,7 +85,7 @@ class Net(nn.Module):
 
     def forward(self, x):
         z = T.relu(self.hid1(x)) # try also relu activ. f.
-        # z = T.relu(self.hid2(z))
+        z = T.relu(self.hid2(z))
         # z = T.tanh(self.hid3(z))
         z = self.oupt(z)  # no activation
         return z
@@ -115,10 +113,10 @@ def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
 
 
 #------------------------------------------------------------------------------------
-src_file = 'data\\datapoints_pressure_3k.txt' 
+src_file = 'data\\datapoints_pressure_0.5to1.5.txt'  #'data\\datapoints_pressure_3k.txt' 
 full_dataset = LoadDataset(src_file) 
 
-T.manual_seed(8)  # recover reproducibility
+T.manual_seed(4)  # recover reproducibility
 
 # 2. create network
 net = Net().to(device)
@@ -140,7 +138,7 @@ test_size = len(full_dataset) - train_size
 train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
 
 # Create minibatch on training set
-bat_size= 20
+bat_size= 100
 train_loader = T.utils.data.DataLoader(train_dataset,
     batch_size=bat_size, shuffle=True) # set to True
 
@@ -265,7 +263,7 @@ plt.savefig('Images\\changing_pressure\\loss_curve_forward.png')
 
 
 # #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
-test_file = 'data\\datapoints_pressure_test.txt'
+test_file = 'data\\datapoints_pressure_test_0.5to1.5.txt'
 all_xy =  np.loadtxt(test_file,
       usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",

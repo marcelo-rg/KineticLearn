@@ -188,7 +188,7 @@ if __name__=='__main__':
     T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints_pressure_3k.txt' 
+    src_file = 'data\\datapoints.txt'  # 'data\\datapoints_pressure_3k.txt'
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
@@ -332,7 +332,7 @@ if __name__=='__main__':
 
     #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    test_file = 'data\\datapoints_pressure_test.txt'
+    test_file = 'data\\datapoints_pressure_test_0.5to1.5.txt'
     all_xy =  np.loadtxt(test_file,
         usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
         # usecols=range(0,9), delimiter="\t",

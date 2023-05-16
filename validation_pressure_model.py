@@ -188,7 +188,7 @@ if __name__=='__main__':
     training_dataset  = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
 
     # Load test dataset of fixed k's
-    full_dataset = np.loadtxt('data\\datapoints_fixed_test2.txt', max_rows=None,
+    full_dataset = np.loadtxt('data\\datapoints.txt', max_rows=None,
         usecols=[0,1,2,3], delimiter="  ",
         # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
         comments="#", skiprows=0, dtype=np.float64)

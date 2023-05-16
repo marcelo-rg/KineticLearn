@@ -1,4 +1,3 @@
-import metrics_normalization as mn
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -7,8 +6,12 @@ import torch.nn as nn
 device = T.device("cpu")
 from mlxtend.preprocessing import standardize
 from mpl_toolkits import mplot3d
+from sklearn import preprocessing
 
 
+
+scaler = preprocessing.MinMaxScaler()
+scaler_max_abs = preprocessing.MaxAbsScaler()
 # -----------------------------------------------------------
 class LoadDataset(T.utils.data.Dataset):
   # last 3 columns: densities (input)
@@ -16,25 +19,41 @@ class LoadDataset(T.utils.data.Dataset):
 
   def __init__(self, src_file, m_rows=None):
     all_xy = np.loadtxt(src_file, max_rows=m_rows,
-      usecols=[0,1,2,3,4,5,6,7,8,9,10,11], delimiter="  ",
+      usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",
       comments="#", skiprows=0, dtype=np.float64)
-  
 
-    tmp_x = all_xy[:,[9,10,11]] 
-    tmp_y = all_xy[:,[0,1,2,3,4,5,6,7,8]]
+    tmp_x = all_xy[:,[0,1,2,9]] # [0,1,2]
+    tmp_y = all_xy[:,[10,11,12]] 
+    #[0,1,2,3,4,5,6,7,8]
+
+    # self.my_standardize = mn.Standardize()
+    # tmp_y = self.my_standardize.standardization(tmp_y)
+
 
     # Normalize data
-    tmp_x = mn.densitie_fraction(tmp_x)
+    scaler_max_abs.fit(tmp_y)
+    tmp_y = scaler_max_abs.transform(tmp_y)
+    # scaler.fit(tmp_y) # standard scaler
+    # tmp_y = scaler.transform(tmp_y)
+
+    #scale k's
+    scaler.fit(tmp_x) # standard scaler
+    tmp_x = scaler.transform(tmp_x)
+
+
+
+
+
+    #tmp_x = standardize(tmp_x)
     #tmp_y = np.log(tmp_y)
     #tmp_y = standardize(tmp_y)
-    #tmp_x = np.log(tmp_x)
-    
-    #tmp_x = standardize(tmp_x)
 
     self.x_data = T.tensor(tmp_x, \
       dtype=T.float64).to(device)
     self.y_data = T.tensor(tmp_y, \
+      dtype=T.float64).to(device)
+    self.all_data = T.tensor(all_xy, \
       dtype=T.float64).to(device)
 
 
@@ -46,28 +65,6 @@ class LoadDataset(T.utils.data.Dataset):
     coef = self.y_data[idx,:] 
     return (densities, coef)       # tuple of two matrices 
 
-# ------------------------------------------------------------------------------
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        # The Linear() class defines a fully connected network layer
-        self.hid1 = nn.Linear(3, 20)  # hidden 1
-        #self.hid2 = nn.Linear(10, 10) # hidden 2
-        #self.hid3 = nn.Linear(50, 50) # hidden 3
-        #self.hid4 = nn.Linear(50, 50) # hidden 4
-        self.oupt = nn.Linear(20, 9)  # output
-
-    # Missing initialization of weights
-    #T.nn.init.uniform_(self.hid1.weight, -0.05, +0.05)
-
-    def forward(self, x):
-        z = T.relu(self.hid1(x)) # try also relu activ. f.
-        #z = T.relu(self.hid2(z))
-        #z = T.relu(self.hid3(z))
-        #z = T.tanh(self.hid4(z))
-        z = self.oupt(z)  # no activation
-        return z
 
 
 #------------------------------------------------------------------------------------
@@ -78,19 +75,13 @@ class Net(nn.Module):
 #------------------------------------------------------------------------------------
 
 
-src_file = 'C:\\Users\\clock\\Desktop\\Python\\datapoints.txt'
+src_file = 'data\\datapoints_pressure_0.5to1.5.txt'
 full_dataset = LoadDataset(src_file) #,m_rows=500) 
 
 x_data = full_dataset.x_data
 y_data = full_dataset.y_data
 
 
-#
-full_dataset2 = LoadDataset('C:\\Users\\clock\\Desktop\\Python\\datapoints_mesh_random.txt') #,m_rows=500) 
-
-x_data2 = full_dataset2.x_data
-y_data2 = full_dataset2.y_data
-#
 
 """
 
@@ -132,37 +123,22 @@ exit()"""
 # plt.show()
 # exit()
 
+
 fig = plt.figure(figsize = (10, 7))
 ax = plt.axes(projection ="3d")
 plt.rcParams["figure.autolayout"] = True
-
-
-
-
 
 density0 = x_data[:,0].numpy()
 density1 = x_data[:,1].numpy()
 density2 = x_data[:,2].numpy()
 
-index1 = 1
-index2 = 2
-
-k0 = y_data[:,index1].numpy()
-k1 = y_data[:,index2].numpy()
-
+k1 = y_data[:,0].numpy()
+k2 = y_data[:,1].numpy()
+k3 = y_data[:,2].numpy()
+pressure = x_data[:,3].numpy()
 
 
-#
-density02 = x_data2[:,0].numpy()
-density12 = x_data2[:,1].numpy()
-density22 = x_data2[:,2].numpy()
-
-k02 = y_data2[:,index1].numpy()
-k12 = y_data2[:,index2].numpy()
-#
-
-
-print( len(k0), " training points")
+print( len(k1), " training points")
 
 # K1, K2 = np.meshgrid(k0,k1)
 # print(len(K1[0]))
@@ -170,18 +146,23 @@ print( len(k0), " training points")
 # for index, value in enumerate(K1):
 #   print(k0[index], "  ", value)
 
+Label = ["O2(X)","O2(a)", "O(3P)"]
+# add colormap hvs to the scatter 3D plot
+ax.scatter3D(k1, k2, pressure, c=density0, cmap='hsv', label= Label[0])
+
 
 
 #ax.contour3D(K1, K2, density0, color = "blue", label= "O2(X)")
-ax.scatter3D(k0, k1, density0, color = "blue", label= "O2(X)")
+# ax.scatter3D(k0, k1, density0, color = "blue", label= "O2(X)")
 ##
 #ax.scatter3D(k02, k12, density02, color = "red", label= "O2(X)")
 ##
-ax.scatter3D(k0, k1, density1, color = "orange", label= "O2(a)")
-ax.scatter3D(k0, k1, density2, color = "green", label= "O(P)")
-plt.title("k"+str(index1+1)+ " vs " "k"+str(index2+1))
-ax.set_xlabel('k'+str(index1+1), fontsize=15)
-ax.set_ylabel('k'+str(index2+1), fontsize=15)
+# ax.scatter3D(k0, k1, density1, color = "orange", label= "O2(a)")
+# ax.scatter3D(k0, k1, density2, color = "green", label= "O(P)")
+plt.title(Label[0])
+ax.set_xlabel('k1', fontsize=15)
+ax.set_ylabel('k2', fontsize=15)
+ax.set_zlabel('pressure', fontsize=15)
 plt.legend()
 #plt.savefig("C:\\Users\\clock\\Desktop\\Python\\Images\\3dk1k3_unordered.pdf")
 plt.show()
