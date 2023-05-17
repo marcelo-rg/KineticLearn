@@ -29,22 +29,15 @@ class LoadDataset(T.utils.data.Dataset):
     # self.my_standardize = mn.Standardize()
     # tmp_y = self.my_standardize.standardization(tmp_y)
 
-
+    print("max value of densities of training set, O2(a): ", np.max(tmp_y[:,1]))
     # Normalize data
-    scaler_max_abs.fit(tmp_y)
-    tmp_y = scaler_max_abs.transform(tmp_y)
-    # scaler.fit(tmp_y) # standard scaler
-    # tmp_y = scaler.transform(tmp_y)
-
-    #scale k's
+    #scale k's and pressure
     scaler.fit(tmp_x) # standard scaler
     tmp_x = scaler.transform(tmp_x)
 
+    scaler_max_abs.fit(tmp_y)
+    tmp_y = scaler_max_abs.transform(tmp_y)
 
-
-    #tmp_x = standardize(tmp_x)
-    #tmp_y = np.log(tmp_y)
-    #tmp_y = standardize(tmp_y)
 
     self.x_data = T.tensor(tmp_x, \
       dtype=T.float64).to(device)
@@ -68,10 +61,10 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # The Linear() class defines a fully connected network layer
-        self.hid1 = nn.Linear(4,100)  # hidden 1
+        self.hid1 = nn.Linear(4,300)  # hidden 1
         # self.hid2 = nn.Linear(100, 50) # hidden 2
         # self.hid3 = nn.Linear(50, 50) # hidden 3
-        self.oupt = nn.Linear(100, 3)  # output
+        self.oupt = nn.Linear(300, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
         # T.nn.init.xavier_uniform_(self.hid2.weight)
         # T.nn.init.xavier_uniform(self.hid3.weight)
@@ -111,7 +104,7 @@ def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
 
 
 #------------------------------------------------------------------------------------
-src_file = 'data\\datapoints_pressure_0.1to1.txt'  #'data\\datapoints_pressure_3k.txt' 
+src_file = 'data\\datapoints_pressure_0.1to10.txt'  #'data\\datapoints_pressure_3k.txt' 
 full_dataset = LoadDataset(src_file) 
 
 T.manual_seed(4)  # recover reproducibility
@@ -131,7 +124,7 @@ optimizer = T.optim.Adam(net.parameters(), lr=lrn_rate ) #, weight_decay=1e-4)
 
 
 # Split into training and validation sets
-train_size = int(0.90 * len(full_dataset))
+train_size = int(0.99 * len(full_dataset))
 test_size = len(full_dataset) - train_size
 train_dataset, val_dataset = T.utils.data.random_split(full_dataset, [train_size, test_size])
 
@@ -248,20 +241,9 @@ plt.legend()
 plt.savefig('Images\\changing_pressure\\loss_curve_forward.png')
 
 
-# # Print mean rel. error
-# print("\n\nPrinting mean rel. err in validation:")
-# for idx, rel_err in enumerate(mn.rel_error(train_predictions, y_train)):
-#   print("k%d:   rel.err = %0.2f   " % \
-#       (idx+1, rel_err*100))
-
-# print("\n\nPrinting mean rel. err in training:")
-# for idx, rel_err in enumerate(mn.rel_error(val_predictions, y_val)):
-#   print("k%d:   rel.err = %0.2f   " % \
-#       (idx+1, rel_err*100))
-
 
 # #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
-test_file = 'data\\datapoints_pressure_test_0.1to1.txt'
+test_file = 'data\\datapoints_pressure_test0.1to10.txt'
 all_xy =  np.loadtxt(test_file,
       usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",
@@ -272,9 +254,13 @@ tmp_y = all_xy[:,[10,11,12]]
 #[0,1,2,3,4,5,6,7,8]
 
 # Normalize data
-tmp_y = scaler_max_abs.transform(tmp_y)
-#tmp_y = standardize(tmp_y)
+print("max value of densities of test set, O2(a): ", np.argmax(tmp_y[:,1]))
 tmp_x = scaler.transform(tmp_x)
+
+
+tmp_y = scaler_max_abs.transform(tmp_y)
+
+
 
 x_data = T.tensor(tmp_x, \
       dtype=T.float64).to(device)
@@ -284,45 +270,9 @@ y_data = T.tensor(tmp_y, \
 #predict =  net(x_data).detach().numpy()*full_dataset.my_standardize.std + full_dataset.my_standardize.mean
 predict =  net(x_data).detach().numpy()
 # predict = scaler.inverse_transform(predict)
-target = y_data.numpy()
-densities = x_data.numpy()
-#target = y_data.numpy()*full_dataset.my_standardize.std + full_dataset.my_standardize.mean
+target = y_data.numpy() # densities
+input  = x_data.numpy() # k's and pressure
 
-# # Sort the arrays
-# # pred_k1_sorted = np.sort(predict[:,0])
-# # target_k1_sorted = np.sort(target[:,0])
-# # pred_k2_sorted = np.sort(predict[:,1])
-# # target_k2_sorted = np.sort(target[:,1])
-# # pred_k3_sorted = np.sort(predict[:,2])
-# # target_k3_sorted = np.sort(target[:,2])
-
-# print("k1: prediction , target || k2: prediction , target")
-# for i in range(len(predict)):
-#   # print("k1: (%.4e, %.4e) || k2: (%.4e, %.4e)" % (pred_k1_sorted[i], target_k1_sorted[i], pred_k2_sorted[i], target_k2_sorted[i]))
-#   print("%.4e  %.4e    %.4e  %.4e    %.4e  %.4e" % (predict[i,0], target[i,0], predict[i,1], target[i,1], predict[i,2], target[i,2]))
-
-# for i in range(len(predict)):
-#   print("%.5f  %.5f  %.5f    %.4f" % (densities[i,0], densities[i,1], densities[i,2], densities[i,0]+ densities[i,1]+ densities[i,2]))
-
-
-
-
-# Plot densities of test set
-# for idx in range(len(predict[0])):
-#     filename = 'D:\\Marcelo\\github\\Thesis\\Images\\species\\species_test_' + species[idx]+'.png'
-#     plt.clf()
-#     # plt.xticks(np.arange(1, len(target[:,0]), 1))
-#     # plt.figure(figsize=(46.82 * .5**(.5 * A), 33.11 * .5**(.5 * A)))
-#     a = target[:,idx] # target
-#     b = predict[:,idx] # predicted
-#     ab = np.stack((a,b), axis=-1)
-#     sorted_ab = ab[ab[:,0].argsort()]
-#     # print(sorted_ab)
-#     plt.plot(np.arange(1,len(predict)+1,1), sorted_ab[:,1], 'ro', label='predicted')
-#     plt.plot(np.arange(1,len(predict)+1,1),sorted_ab[:,0], 'bo', label= 'target')
-#     plt.legend()
-#     plt.ylabel(species[idx])
-#     plt.savefig(filename)
 
 # Create a scatter plot of the two densitie arrays against each other
 for idx in range(len(predict[0])):

@@ -67,7 +67,7 @@ class Net(nn.Module):
         # The Linear() class defines a fully connected network layer
         self.hid1 = nn.Linear(4,10)  # hidden 1
         self.hid2 = nn.Linear(10, 10)# hidden 2
-        # self.hid3 = nn.Linear(100, 100) # hidden 3
+        # self.hid3 = nn.Linear(10, 10) # hidden 3
         self.oupt = nn.Linear(10, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
         T.nn.init.xavier_uniform_(self.hid2.weight)
@@ -94,9 +94,9 @@ class Net(nn.Module):
 class Net_forward(nn.Module):
     def __init__(self):
         super(Net_forward, self).__init__()
-        self.hid1 = nn.Linear(4,100)  # hidden 1
+        self.hid1 = nn.Linear(4,300)  # hidden 1
         # self.hid2 = nn.Linear(10, 10) # hidden 2
-        self.oupt = nn.Linear(100, 3)  # output
+        self.oupt = nn.Linear(300, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
         # T.nn.init.xavier_uniform_(self.hid2.weight)
 
@@ -152,8 +152,8 @@ class MyPlots():
         matplotlib.rcParams.update({'font.size': 20}) 
 
     def plot_loss_curves(self):
-        plt.plot(self.epoch_list, self.epoch_loss_list, '-o', label = 'MSE')
-        plt.plot(self.epoch_list, self.epoch_loss_list_loki, '-o', label = 'LoKI')
+        plt.plot(self.epoch_list, self.epoch_loss_list, '-o', label = 'MSE k´s')
+        plt.plot(self.epoch_list, self.epoch_loss_list_loki, '-o', label = 'Surrogate')
         plt.plot(self.epoch_list, self.val_loss_list, '-o', label = 'validation')
         plt.xlabel('epoch')
         plt.ylabel('loss')
@@ -191,10 +191,10 @@ def param_norm():
 
 if __name__=='__main__':
 
-    T.manual_seed(8) # recover reproducibility
+    T.manual_seed(4) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints_pressure_0.1to1.txt'  # 'data\\datapoints_pressure_3k.txt'
+    src_file = 'data\\datapoints_pressure_0.1to10.txt'  # 'data\\datapoints_pressure_3k.txt'
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     full_dataset = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) #(data already scaled)
@@ -338,7 +338,7 @@ if __name__=='__main__':
 
     #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
 
-    test_file = 'data\\datapoints_pressure_test_0.1to1.txt'
+    test_file = 'data\\datapoints_pressure_test_0.1to10.txt'
     all_xy =  np.loadtxt(test_file,
         usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
         # usecols=range(0,9), delimiter="\t",

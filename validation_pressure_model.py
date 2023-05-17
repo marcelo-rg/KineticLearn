@@ -30,6 +30,8 @@ class LoadDataset(T.utils.data.Dataset):
             y_columns = np.arange(0,ncolumns-nspecies,1)
 
         tmp_x = all_xy[:,x_columns] # pressure and densities
+        # multiply the first column (pressure) by 10
+        tmp_x[:,0] = tmp_x[:,0]*10
         tmp_y = all_xy[:,y_columns]*10 # k's 
 
 
@@ -91,9 +93,9 @@ class Net(nn.Module):
 class Net_forward(nn.Module):
     def __init__(self):
         super(Net_forward, self).__init__()
-        self.hid1 = nn.Linear(4,100)  # hidden 1
+        self.hid1 = nn.Linear(4,300)  # hidden 1
         # self.hid2 = nn.Linear(10, 10) # hidden 2
-        self.oupt = nn.Linear(100, 3)  # output
+        self.oupt = nn.Linear(300, 3)  # output
         T.nn.init.xavier_uniform_(self.hid1.weight)
         # T.nn.init.xavier_uniform_(self.hid2.weight)
 
@@ -179,19 +181,22 @@ class MyPlots():
 
 if __name__=='__main__':
 
-    T.manual_seed(8) # recover reproducibility
+    # T.manual_seed(8) # recover reproducibility
 
     # 1. Load training dataset 
-    src_file = 'data\\datapoints_pressure_3k.txt' 
+    src_file = 'data\\datapoints_pressure_0.1to10.txt' 
     species = ['O2(X)','O2(a)', 'O(3P)']
     k_columns = [0,1,2] # Set to None to read all reactions/columns in the file
     training_dataset  = LoadDataset(src_file, nspecies= len(species), react_idx= k_columns) # load the dataset again to access the scaler
 
     # Load test dataset of fixed k's
-    full_dataset = np.loadtxt('data\\datapoints_pressure_0.1to1.txt', max_rows=None,
+    full_dataset = np.loadtxt('data\\datapoints_fixed_test.txt', max_rows=None,
         usecols=[0,1,2,3], delimiter="  ",
         # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
         comments="#", skiprows=0, dtype=np.float64)
+    
+    # multiply the first column (pressure) by 10
+    full_dataset[:,0] = full_dataset[:,0]*10
     full_dataset = T.tensor(full_dataset, dtype=T.float64).to(device)
 
     # 2. Create and load neural network model
@@ -225,6 +230,7 @@ if __name__=='__main__':
     # create a numpy array with the k values of type float
     k = np.array(values)
     k = k.astype(float)
+
     # ---------------------------------------------------------------
     # scale the full_dataset
     scaled_full_dataset = T.tensor(training_dataset.scaler_max_abs.transform(full_dataset.numpy())).to(device)
@@ -236,9 +242,9 @@ if __name__=='__main__':
     # inverse transform the predicted k's to be compared with the fixed values from the chem file
     # test_predictions = training_dataset.scaler.inverse_transform(test_predictions.detach().numpy())
     # transform the fixed k's to be compared with the predicted k's
-    print(y_test)
+    y_test = y_test*10
     y_test = training_dataset.scaler.transform(y_test.reshape(1,-1)).squeeze()
-    print(y_test)
+    
     # exit()
     # print(test_predictions)
   
@@ -267,7 +273,19 @@ if __name__=='__main__':
         a = y_test[idx] # target
         b = test_predictions_numpy[:,idx] # predicted
 
-        plt.hist(b, bins= 50, alpha= 0.5, label= 'predicted')
+        #plot histogram of k values
+        # fix the histogram acale
+        # Calculate mean and standard deviation
+        mean = np.mean(b)
+        std = np.std(b)
+
+        # Set the range for the histogram
+        range_min = mean - 3 * std
+        range_max = mean + 3 * std
+
+        plt.xlim(range_min, range_max)
+        # plt.xlim(0, 1)
+        plt.hist(b, bins= 20, density=True, edgecolor='black',label='predicted')
         # plot a line at the fixed k value
         plt.axvline(x=a, color='r', linestyle='dashed', linewidth=2, label= 'fixed k')
         plt.title('k'+str(k_columns[idx]+1))
@@ -279,7 +297,6 @@ if __name__=='__main__':
     target_densities = scaled_full_dataset.detach().numpy() # input densities
     # remove the first column (pressure) from the input densities
     target_densities = np.delete(target_densities, 0, axis=1)
-    print(predict_densities)
 
 
     # Create a scatter plot of the two arrays against each other
