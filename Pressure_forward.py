@@ -104,7 +104,7 @@ def save_checkpoint(state, filename= "checkpoint_forward_pressure.pth.tar"):
 
 
 #------------------------------------------------------------------------------------
-src_file = 'data\\datapoints_pressure_0.1to10.txt'  #'data\\datapoints_pressure_3k.txt' 
+src_file = 'data\\datapoints_pressure_morris.txt'  #'data\\datapoints_pressure_3k.txt' 
 full_dataset = LoadDataset(src_file) 
 
 T.manual_seed(4)  # recover reproducibility
@@ -243,7 +243,7 @@ plt.savefig('Images\\changing_pressure\\loss_curve_forward.png')
 
 
 # #---------------------------------------------EVALUATION OF TEST SET------------------------------------------------------
-test_file = 'data\\datapoints_pressure_test0.1to10.txt'
+test_file = 'data\\datapoints_pressure_test.txt'
 all_xy =  np.loadtxt(test_file,
       usecols=[0,1,2,3,4,5,6,7,8,9,10,11,12], delimiter="  ",
       # usecols=range(0,9), delimiter="\t",
