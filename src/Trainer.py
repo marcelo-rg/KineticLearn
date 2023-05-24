@@ -123,6 +123,19 @@ class NSurrogatesModelTrainer:
 
         # Return the loss history
         return training_losses, validation_losses
+    
+
+    def freeze_surrogate_models(self):
+        for surrog_net in self.model.surrog_nets:
+            for param in surrog_net.parameters():
+                param.requires_grad = False
+    
+    def unfreeze_surrogate_models(self):
+        for surrog_net in self.model.surrog_nets:
+            for param in surrog_net.parameters():
+                param.requires_grad = True
+
+
 
 
     def add_surrogate_and_dataset(self, surrogate_params, dataset):

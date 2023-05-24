@@ -5,6 +5,7 @@ from torch.optim import Adam
 from src.Model import NSurrogatesModel
 from src.DataHandler import LoadDataset
 from src.Trainer import NSurrogatesModelTrainer
+from src.PlottingTools import PlottingTools
 
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -26,14 +27,20 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 # Load surrogate datasets
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3) for i in range(n_surrog)]
 
-# Specify loss function and optimizer
+# Specify loss function
 criterion = MSELoss()
+
+# Specify optimizer with parameters of all models
 optimizer = Adam(model.parameters(), lr=0.001)
 
 # Create trainer
 trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, criterion, optimizer)
 
 # Train surrogate models
-trainer.train_surrg_models(epochs)
+training_losses, validation_losses = trainer.train_surrg_models(epochs)
 
 # Further training ...
+
+# Plot training and validation loss histories
+plotter = PlottingTools(training_losses, validation_losses)
+plotter.plot_loss_history()
