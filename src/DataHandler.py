@@ -35,15 +35,13 @@ class LoadDataset(torch.utils.data.Dataset):
         self.scaler_output = preprocessing.MaxAbsScaler()
 
         ncolumns = len(all_xy[0])
-        x_columns = np.arange(ncolumns-nspecies-1,ncolumns,1)
-        y_columns = react_idx
+        y_columns = np.arange(ncolumns-nspecies,ncolumns,1)
+        x_columns = react_idx
         if react_idx == None:
-            y_columns = np.arange(0,ncolumns-nspecies,1)
+            x_columns = np.arange(0,ncolumns-nspecies,1)
 
-        tmp_x = all_xy[:,x_columns] # pressure and densities
-        # multiply first column of tmp_x by 10 to avoid being at float32 precision limit 1e-17
-        tmp_x[:,0] = tmp_x[:,0]*10 # pressure*10
-        tmp_y = all_xy[:,y_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17
+        tmp_x = all_xy[:,x_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17  
+        tmp_y = all_xy[:,y_columns] # densities
 
 
         # Normalize data

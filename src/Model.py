@@ -24,7 +24,7 @@ class NSurrogatesModel(nn.Module):
     """
     def __init__(self, input_size, output_size, hidden_size, n_surrog):
         super(NSurrogatesModel, self).__init__()
-
+        self.n_surrog = n_surrog
         self.main_net = NeuralNet(input_size, output_size, hidden_size, activ_f = "tanh", out_activ_f = "sigmoid").double()
         self.surrog_nets = nn.ModuleList()
         for i in range(n_surrog):
