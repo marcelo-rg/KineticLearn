@@ -38,6 +38,7 @@ class NSurrogatesModelTrainer:
         self.batch_size = batch_size
         self.train_dataloaders = []
         self.val_dataloaders = []
+        self.val_split = val_split
         
         for dataset in datasets:
             # Calculate split sizes
@@ -73,14 +74,16 @@ class NSurrogatesModelTrainer:
             dict: A dictionary mapping each surrogate model to a list of its validation losses over all epochs.
         """
 
+        # Initialize dictionaries to store the loss history
+        training_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
+        validation_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
         for epoch in range(epochs):
-            # Initialize dictionaries to store the loss history
-            training_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
-            validation_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
+            # epoch_loss = 0.0
 
             # Training phase
             for i, (surrog_net, train_dataloader) in enumerate(zip(self.model.surrog_nets, self.train_dataloaders)):
                 surrog_net.train()  # Set the model to training mode
+                epoch_loss = 0.0  # Initialize epoch loss for each surrogate network
                 for x_batch, y_batch in train_dataloader:
                     # Move data to device
                     x_batch = x_batch.to(self.device)
@@ -91,19 +94,21 @@ class NSurrogatesModelTrainer:
 
                     # Compute loss
                     loss = self.surrog_criterion(output, y_batch)
-
-                    # Add loss to history
-                    training_losses[f'surrogate_{i}'].append(loss.item())
+                    epoch_loss += loss.item()  # accumulate avgs
 
                     # Backward pass and optimization
                     self.optimizer.zero_grad()
                     loss.backward()
                     self.optimizer.step()
 
+                # Add loss to history
+                training_losses[f'surrogate_{i}'].append(epoch_loss)
+
             # Validation phase
             with torch.no_grad():  # Disable gradient calculation
-                for surrog_net, val_dataloader in zip(self.model.surrog_nets, self.val_dataloaders):
+                for i, (surrog_net, val_dataloader) in enumerate(zip(self.model.surrog_nets, self.val_dataloaders)):
                     surrog_net.eval()  # Set the model to evaluation mode
+                    epoch_val_loss = 0.0  
                     for x_batch, y_batch in val_dataloader:
                         # Move data to device
                         x_batch = x_batch.to(self.device)
@@ -114,15 +119,17 @@ class NSurrogatesModelTrainer:
 
                         # Compute loss
                         val_loss = self.surrog_criterion(output, y_batch)
+                        epoch_val_loss += val_loss.item()  # accumulate avgs
 
-                        # Add loss to history
-                        validation_losses[f'surrogate_{i}'].append(val_loss.item())
-                        
+                    # Add loss to history
+                    validation_losses[f'surrogate_{i}'].append(epoch_val_loss*(1-self.val_split)/self.val_split)
+
             # Print the training and validation losses for this epoch
-            print(f'Epoch {epoch+1}/{epochs}, Training Loss: {loss.item()}, Validation Loss: {val_loss.item()}')
+            print(f'Epoch {epoch+1}/{epochs}, Training Loss: {epoch_loss}, Validation Loss: {epoch_val_loss*(1-self.val_split)/self.val_split}')
 
         # Return the loss history
         return training_losses, validation_losses
+
     
 
     def freeze_surrogate_models(self):
