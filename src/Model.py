@@ -27,3 +27,19 @@ class NSurrogatesModel():
         for i in range(n_surrog):
             surrog_net = NeuralNet(output_size, input_size, hidden_size = (100,), activ_f = "relu")
             self.surrog_nets.append(surrog_net)
+        
+    def add_surrogate(self, input_size, output_size, hidden_size= (100,), activ_f = "relu"):
+        """
+        Adds a new surrogate network to the model.
+
+        Args:
+            input_size (int): The number of input features for the new surrogate network.
+            output_size (int): The number of output units for the new surrogate network.
+            hidden_size (tuple, optional): The size of the hidden layers for the new surrogate network. 
+                                            Each element represents the size of a specific hidden layer.
+                                            Default is (100,).
+            activ_f (str, optional): The activation function to use in the new surrogate network. Default is "relu".
+        """
+        surrog_net = NeuralNet(input_size, output_size, hidden_size =hidden_size, activ_f=activ_f)
+        self.surrog_nets.append(surrog_net)
+        self.n_surrog += 1
