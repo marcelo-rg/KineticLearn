@@ -2,15 +2,15 @@ import torch
 from torch.nn import MSELoss
 from torch.optim import Adam
 
-from Model import NSurrogatesModel
-from DataHandler import LoadDataset
-from Trainer import NSurrogatesModelTrainer
+from src.Model import NSurrogatesModel
+from src.DataHandler import LoadDataset
+from src.Trainer import NSurrogatesModelTrainer
 
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 2  # example
+n_surrog = 1  # example
 n_param = 3 # number of densities
 
 # Define the model parameters

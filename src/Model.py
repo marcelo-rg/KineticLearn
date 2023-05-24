@@ -1,4 +1,4 @@
-from NeuralNetworkModels import NeuralNet
+from src.NeuralNetworkModels import NeuralNet
 
 class NSurrogatesModel():
     """

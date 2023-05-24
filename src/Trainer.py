@@ -58,19 +58,28 @@ class NSurrogatesModelTrainer:
     
     def train_surrg_models(self, epochs):
         """
-        Trains the surrogate models for a specified number of epochs.
+        Trains the surrogate models for a specified number of epochs and returns the training and validation loss histories.
 
         Each epoch consists of a training phase and a validation phase. In the training phase, the surrogate models 
         are updated to reduce the loss on the training data. In the validation phase, the loss on the validation data is 
-        calculated, but the models are not updated. The training and validation losses for each epoch are printed out.
+        calculated, but the models are not updated. The training and validation losses for each epoch are printed out 
+        and stored in dictionaries that are returned by this method.
 
         Args:
             epochs (int): The number of epochs to train for.
+
+        Returns:
+            dict: A dictionary mapping each surrogate model to a list of its training losses over all epochs.
+            dict: A dictionary mapping each surrogate model to a list of its validation losses over all epochs.
         """
 
         for epoch in range(epochs):
+            # Initialize dictionaries to store the loss history
+            training_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
+            validation_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
+
             # Training phase
-            for surrog_net, train_dataloader in zip(self.model.surrog_nets, self.train_dataloaders):
+            for i, (surrog_net, train_dataloader) in enumerate(zip(self.model.surrog_nets, self.train_dataloaders)):
                 surrog_net.train()  # Set the model to training mode
                 for x_batch, y_batch in train_dataloader:
                     # Move data to device
@@ -82,6 +91,9 @@ class NSurrogatesModelTrainer:
 
                     # Compute loss
                     loss = self.surrog_criterion(output, y_batch)
+
+                    # Add loss to history
+                    training_losses[f'surrogate_{i}'].append(loss.item())
 
                     # Backward pass and optimization
                     self.optimizer.zero_grad()
@@ -102,11 +114,15 @@ class NSurrogatesModelTrainer:
 
                         # Compute loss
                         val_loss = self.surrog_criterion(output, y_batch)
+
+                        # Add loss to history
+                        validation_losses[f'surrogate_{i}'].append(val_loss.item())
                         
             # Print the training and validation losses for this epoch
             print(f'Epoch {epoch+1}/{epochs}, Training Loss: {loss.item()}, Validation Loss: {val_loss.item()}')
 
-
+        # Return the loss history
+        return training_losses, validation_losses
 
 
     def add_surrogate_and_dataset(self, surrogate_params, dataset):
