@@ -25,10 +25,10 @@ class NSurrogatesModel(nn.Module):
     def __init__(self, input_size, output_size, hidden_size, n_surrog):
         super(NSurrogatesModel, self).__init__()
 
-        self.main_net = NeuralNet(input_size, output_size, hidden_size, activ_f = "tanh", out_activ_f = "sigmoid")
+        self.main_net = NeuralNet(input_size, output_size, hidden_size, activ_f = "tanh", out_activ_f = "sigmoid").double()
         self.surrog_nets = nn.ModuleList()
         for i in range(n_surrog):
-            surrog_net = NeuralNet(output_size, input_size, hidden_size = (100,), activ_f = "relu")
+            surrog_net = NeuralNet(output_size, input_size, hidden_size = (100,), activ_f = "relu").double()
             self.surrog_nets.append(surrog_net)
 
     def forward(self, x):
