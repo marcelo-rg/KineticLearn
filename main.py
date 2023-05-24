@@ -9,17 +9,21 @@ from Trainer import NSurrogatesModelTrainer
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Define the model parameters
-input_size = 3  # example
-output_size = 3  # example
-hidden_size = (100,)  # example
+# Specify number of surrogate models and densities
 n_surrog = 2  # example
-epochs = 10  # example
+n_param = 3 # number of densities
+
+# Define the model parameters
+input_size = n_surrog*n_param  # example
+output_size = 3  # number of coefficients
+hidden_size = (10,10)  # architecture of the main model
+
+epochs = 100  # example
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 
-# Load your datasets
+# Load surrogate datasets
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3) for i in range(n_surrog)]
 
 # Specify loss function and optimizer
@@ -32,4 +36,4 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, criterion,
 # Train surrogate models
 trainer.train_surrg_models(epochs)
 
-# Further training can be done here
+# Further training ...
