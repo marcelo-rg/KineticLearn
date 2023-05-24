@@ -43,12 +43,12 @@ class LoadDataset(torch.utils.data.Dataset):
         tmp_x = all_xy[:,x_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17  
         tmp_y = all_xy[:,y_columns] # densities
 
-
         # Normalize data
         self.scaler_input.fit(tmp_x) 
         tmp_x = self.scaler_input.transform(tmp_x)
         self.scaler_output.fit(tmp_y) 
         tmp_y = self.scaler_output.transform(tmp_y)
+
 
         # Convert to tensors
         self.x_data = torch.tensor(tmp_x, \
