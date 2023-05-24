@@ -24,13 +24,37 @@ class NSurrogatesModel(nn.Module):
     """
     def __init__(self, input_size, output_size, hidden_size, n_surrog):
         super(NSurrogatesModel, self).__init__()
+
         self.main_net = NeuralNet(input_size, output_size, hidden_size, activ_f = "tanh", out_activ_f = "sigmoid")
-        self.n_surrog = n_surrog
-        self.surrog_nets = nn.ModuleList([NeuralNet(output_size, input_size, hidden_size=(100,), activ_f="relu") for _ in range(n_surrog)])
+        self.surrog_nets = nn.ModuleList()
+        for i in range(n_surrog):
+            surrog_net = NeuralNet(output_size, input_size, hidden_size = (100,), activ_f = "relu")
+            self.surrog_nets.append(surrog_net)
 
     def forward(self, x):
-        # Pass the input through the main net directly
         return self.main_net(x)
+    
+    def add_surrogate(self, input_size, output_size, hidden_size= (100,), activ_f = "relu"):
+        surrog_net = NeuralNet(input_size, output_size, hidden_size =hidden_size, activ_f=activ_f)
+        self.surrog_nets.append(surrog_net)
+
+    def freeze_surrogates(self):
+        for surrog in self.surrog_nets:
+            for param in surrog.parameters():
+                param.requires_grad = False
+
+    def unfreeze_surrogates(self):
+        for surrog in self.surrog_nets:
+            for param in surrog.parameters():
+                param.requires_grad = True
+
+    def freeze_main(self):
+        for param in self.main_net.parameters():
+            param.requires_grad = False
+
+    def unfreeze_main(self):
+        for param in self.main_net.parameters():
+            param.requires_grad = True
 
     def add_surrogate(self, input_size, output_size, hidden_size=(100,), activ_f="relu"):
         """
