@@ -76,6 +76,9 @@ class NeuralNet(nn.Module):
         """
         return self.model(x)
 
+
+
+
 if __name__ == "__main__":
     print("NeuralNetworkModels.py")
     net = NeuralNet(4, 3, hidden_size=(100, 100), activ_f='tanh', out_activ_f=None)

@@ -84,6 +84,8 @@ class LoadDataset(torch.utils.data.Dataset):
         return (densities, coef) # tuple of two matrices 
     
 
+
+
 if __name__ == "__main__":
     k_idx = [0,1,2]
     dataset = LoadDataset(src_file="data/datapoints_pressure_3k.txt", nspecies=3, react_idx=k_idx, m_rows=None, columns=None)
