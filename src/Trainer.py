@@ -78,7 +78,6 @@ class NSurrogatesModelTrainer:
         training_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
         validation_losses = {f'surrogate_{i}': [] for i in range(self.model.n_surrog)}
         for epoch in range(epochs):
-            # epoch_loss = 0.0
 
             # Training phase
             for i, (surrog_net, train_dataloader) in enumerate(zip(self.model.surrog_nets, self.train_dataloaders)):
@@ -92,6 +91,7 @@ class NSurrogatesModelTrainer:
                     # Forward pass
                     output = surrog_net(x_batch)
 
+                    # print("how many times is this printed?")
                     # Compute loss
                     loss = self.surrog_criterion(output, y_batch)
                     epoch_loss += loss.item()  # accumulate avgs

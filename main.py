@@ -15,7 +15,7 @@ torch.manual_seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 1 
+n_surrog = 1 # number of surrogate models 
 n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
