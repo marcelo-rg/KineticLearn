@@ -62,7 +62,7 @@ class NeuralNet(nn.Module):
                 raise ValueError("Invalid activation function: {}".format(out_activ_f))
 
         # Create the sequential model using the layers
-        self.model = nn.Sequential(*layers)
+        self.model = nn.Sequential(*layers).to(device)
 
     def forward(self, x):
         """Forward pass of the neural network.
