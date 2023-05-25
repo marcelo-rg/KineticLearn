@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 input_size = n_surrog*n_param  # example
 output_size = 3  # number of coefficients
 hidden_size = (10,10)  # architecture of the main model
-max_epoch = 50  # example
+max_epoch = 200  # example
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
@@ -56,5 +56,6 @@ plotter.plot_loss_history(training_losses, validation_losses)
 surrogate_model = model.surrog_nets[0]
 
 # Plot validation using test dataset
-test_dataset = LoadDataset(src_file="data/datapoints_pressure_0_test.txt", nspecies=3, react_idx=k_columns)
+test_dataset = LoadDataset(src_file="data/datapoints_pressure_0_test.txt", nspecies=3, react_idx=k_columns,\
+                            scaler_input=datasets[0].scaler_input, scaler_output=datasets[0].scaler_output)
 plotter.plot_predictions(surrogate_model, test_dataset)

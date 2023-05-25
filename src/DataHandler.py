@@ -25,14 +25,15 @@ class LoadDataset(torch.utils.data.Dataset):
 
     """
 
-    def __init__(self, src_file, nspecies, react_idx = None, m_rows=None, columns= None):
+    def __init__(self, src_file, nspecies, react_idx = None, m_rows=None, columns= None, scaler_input = None, scaler_output = None):
+        super(LoadDataset, self).__init__()
+        self.scaler_input = scaler_input
+        self.scaler_output = scaler_output
+
         all_xy = np.loadtxt(src_file, max_rows=m_rows,
             usecols=columns, delimiter="  ",
             # usecols=range(0,9), delimiter="\t", delimter= any whitespace by default
             comments="#", skiprows=0, dtype=np.float64)
-
-        self.scaler_input = preprocessing.MaxAbsScaler()  
-        self.scaler_output = preprocessing.MaxAbsScaler()
 
         ncolumns = len(all_xy[0])
         y_columns = np.arange(ncolumns-nspecies,ncolumns,1)
@@ -43,10 +44,15 @@ class LoadDataset(torch.utils.data.Dataset):
         tmp_x = all_xy[:,x_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17  
         tmp_y = all_xy[:,y_columns] # densities
 
-        # Normalize data
-        self.scaler_input.fit(tmp_x) 
+        # Create scalers
+        if scaler_input == None and scaler_output == None:
+            self.scaler_input = preprocessing.MaxAbsScaler()  
+            self.scaler_output = preprocessing.MaxAbsScaler()
+            self.scaler_input.fit(tmp_x) 
+            self.scaler_output.fit(tmp_y)   
+        
+        # Scale data
         tmp_x = self.scaler_input.transform(tmp_x)
-        self.scaler_output.fit(tmp_y) 
         tmp_y = self.scaler_output.transform(tmp_y)
 
 
