@@ -47,22 +47,23 @@ class PlottingTools:
             ax.plot([0, 1], [0, 1], linestyle='--', color='k')
             ax.set_title(f'True Values vs Predictions for {species[i]}')
 
-            # rel_err = np.abs(np.subtract(true_values[:, i], predictions[:, i])/true_values[:, i])
+            # Calculate relative error
+            rel_err = np.abs(np.subtract(true_values[:, i], predictions[:, i])/true_values[:, i])
 
-            # textstr = '\n'.join((
-            # r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean()*100, ),
-            # r'$Max\ \epsilon_{rel}=%.2f$%%' % (max(rel_err)*100, )))
+            textstr = '\n'.join((
+            r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean()*100, ),
+            r'$Max\ \epsilon_{rel}=%.2f$%%' % (max(rel_err)*100, )))
 
-            # # colour point o max error
-            # max_index = np.argmax(rel_err)
-            # ax.scatter(true_values[max_index,i],predictions[max_index,i] , color="gold", zorder= 2)
+            # colour point o max error
+            max_index = np.argmax(rel_err)
+            ax.scatter(true_values[max_index,i],predictions[max_index,i] , color="gold", zorder= 2)
 
-            # # these are matplotlib.patch.Patch properties
-            # props = dict(boxstyle='round', alpha=0.5) #, facecolor='none', edgecolor='none')
+            # these are matplotlib.patch.Patch properties
+            props = dict(boxstyle='round', alpha=0.5) #, facecolor='none', edgecolor='none')
 
-            # # place a text box in upper left in axes coords
-            # ax.text(0.70, 0.25, textstr, fontsize=14,  transform=plt.gca().transAxes,
-            #     verticalalignment='top', bbox=props)
+            # place a text box in upper left in axes coords
+            ax.text(0.63, 0.25, textstr, fontsize=10,  transform=ax.transAxes,
+                verticalalignment='top', bbox=props)
 
         plt.tight_layout()
         plt.savefig('images/predictions_vs_true_values.png')

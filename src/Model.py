@@ -32,27 +32,44 @@ class NSurrogatesModel(nn.Module):
             self.surrog_nets.append(surrog_net)
 
     def forward(self, x):
+        """
+        Perform a forward pass on the main network.
+        
+        Args:
+            x (torch.Tensor): The input data.
+            
+        Returns:
+            torch.Tensor: The output of the network.
+        """
         return self.main_net(x)
-    
-    def add_surrogate(self, input_size, output_size, hidden_size= (100,), activ_f = "relu"):
-        surrog_net = NeuralNet(input_size, output_size, hidden_size =hidden_size, activ_f=activ_f)
-        self.surrog_nets.append(surrog_net)
 
     def freeze_surrogates(self):
+        """
+        Freeze the parameters of the surrogate networks, preventing them from being updated during training.
+        """
         for surrog in self.surrog_nets:
             for param in surrog.parameters():
                 param.requires_grad = False
 
     def unfreeze_surrogates(self):
+        """
+        Unfreeze the parameters of the surrogate networks, allowing them to be updated during training.
+        """
         for surrog in self.surrog_nets:
             for param in surrog.parameters():
                 param.requires_grad = True
 
     def freeze_main(self):
+        """
+        Freeze the parameters of the main network, preventing them from being updated during training.
+        """
         for param in self.main_net.parameters():
             param.requires_grad = False
 
     def unfreeze_main(self):
+        """
+        Unfreeze the parameters of the main network, allowing them to be updated during training.
+        """
         for param in self.main_net.parameters():
             param.requires_grad = True
 

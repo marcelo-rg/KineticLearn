@@ -14,15 +14,15 @@ torch.manual_seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 1  # example
+n_surrog = 1 
 n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
 # Define the model parameters
-input_size = n_surrog*n_param  # example
+input_size = n_surrog*n_param 
 output_size = 3  # number of coefficients
 hidden_size = (10,10)  # architecture of the main model
-max_epoch = 200  # example
+max_epoch = 200  
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
