@@ -12,9 +12,16 @@ class LoadDataset(torch.utils.data.Dataset):
     Args:
         src_file (str): The path to the source file containing the data.
         nspecies (int): The number of species.
-        react_idx (list or None, optional): The indices of the columns representing the output (k's). If None, the first 9 columns are considered as output. Default is None.
-        m_rows (int or None, optional): The maximum number of rows to load from the source file. Default is None, which loads all rows.
-        columns (list or None, optional): The indices of the columns to load from the source file. Default is None, which loads all columns.
+        react_idx (list or None, optional): The indices of the columns representing the output (k's). 
+                      If None, the first 9 columns are considered as output. Default is None.
+        m_rows (int or None, optional): The maximum number of rows to load from the source file. 
+                      Default is None, which loads all rows.
+        columns (list or None, optional): The indices of the columns to load from the source file. 
+                      Default is None, which loads all columns.
+        scaler_input (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the input (densities and pressure). 
+                      If None, a new scaler is created. Default is None.
+        scaler_output (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the output (k's). 
+                      If None, a new scaler is created. Default is None.
 
     Attributes:
         scaler_input (sklearn.preprocessing.MaxAbsScaler): The MaxAbsScaler used for scaling the input (densities and pressure).
