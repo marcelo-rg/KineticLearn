@@ -1,6 +1,7 @@
 import torch
 from torch.nn import MSELoss
 from torch.optim import Adam
+import time
 
 from src.Model import NSurrogatesModel
 from src.DataHandler import LoadDataset
@@ -39,16 +40,19 @@ optimizer = Adam(model.parameters(), lr=0.0001)
 # Create trainer
 trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, criterion, optimizer)
 
+start = time.time()
 # Train surrogate models
 training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 
 # Further training ...
+end = time.time()
+print("Training time: ",end - start)
 
 # for evaluation, move model to cpu
 if device.type == 'cuda':  
     model = model.to('cpu')
 
-# Plot training and validation loss histories
+# # Plot training and validation loss histories
 plotter = PlottingTools()
 plotter.plot_loss_history(training_losses, validation_losses)
 
