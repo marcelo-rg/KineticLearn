@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataHandler &mdash; KineticLearn 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            KineticLearn
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">KineticLearn</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">DataHandler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for DataHandler</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span> 
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">preprocessing</span>
+<span class="c1"># torch.set_default_tensor_type(torch.DoubleTensor)</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------</span>
+<div class="viewcode-block" id="LoadDataset"><a class="viewcode-back" href="../DataHandler.html#DataHandler.LoadDataset">[docs]</a><span class="k">class</span> <span class="nc">LoadDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A custom dataset class for loading and preprocessing data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        src_file (str): The path to the source file containing the data.</span>
+<span class="sd">        nspecies (int): The number of species.</span>
+<span class="sd">        react_idx (list or None, optional): The indices of the columns representing the output (k&#39;s). </span>
+<span class="sd">                      If None, the first 9 columns are considered as output. Default is None.</span>
+<span class="sd">        m_rows (int or None, optional): The maximum number of rows to load from the source file. </span>
+<span class="sd">                      Default is None, which loads all rows.</span>
+<span class="sd">        columns (list or None, optional): The indices of the columns to load from the source file. </span>
+<span class="sd">                      Default is None, which loads all columns.</span>
+<span class="sd">        scaler_input (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the input (densities and pressure). </span>
+<span class="sd">                      If None, a new scaler is created. Default is None.</span>
+<span class="sd">        scaler_output (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the output (k&#39;s). </span>
+<span class="sd">                      If None, a new scaler is created. Default is None.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        scaler_input (sklearn.preprocessing.MaxAbsScaler): The MaxAbsScaler used for scaling the input (densities and pressure).</span>
+<span class="sd">        scaler_output (sklearn.preprocessing.MaxAbsScaler): The MaxAbsScaler used for scaling the output (k&#39;s).</span>
+<span class="sd">        x_data (torch.Tensor): The preprocessed input data (densities and pressure).</span>
+<span class="sd">        y_data (torch.Tensor): The preprocessed output data (k&#39;s).</span>
+<span class="sd">        all_data (torch.Tensor): The original unprocessed data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_file</span><span class="p">,</span> <span class="n">nspecies</span><span class="p">,</span> <span class="n">react_idx</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">m_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scaler_input</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scaler_output</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LoadDataset</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span> <span class="o">=</span> <span class="n">scaler_input</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span> <span class="o">=</span> <span class="n">scaler_output</span>
+
+        <span class="n">all_xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="n">m_rows</span><span class="p">,</span>
+            <span class="n">usecols</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;  &quot;</span><span class="p">,</span>
+            <span class="c1"># usecols=range(0,9), delimiter=&quot;\t&quot;, delimter= any whitespace by default</span>
+            <span class="n">comments</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="n">ncolumns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_xy</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">y_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ncolumns</span><span class="o">-</span><span class="n">nspecies</span><span class="p">,</span><span class="n">ncolumns</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_columns</span> <span class="o">=</span> <span class="n">react_idx</span>
+        <span class="k">if</span> <span class="n">react_idx</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ncolumns</span><span class="o">-</span><span class="n">nspecies</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">tmp_x</span> <span class="o">=</span> <span class="n">all_xy</span><span class="p">[:,</span><span class="n">x_columns</span><span class="p">]</span><span class="o">*</span><span class="mi">10</span> <span class="c1"># k&#39;s  #*10 to avoid being at float32 precision limit 1e-17  </span>
+        <span class="n">tmp_y</span> <span class="o">=</span> <span class="n">all_xy</span><span class="p">[:,</span><span class="n">y_columns</span><span class="p">]</span> <span class="c1"># densities</span>
+
+        <span class="c1"># Create scalers</span>
+        <span class="k">if</span> <span class="n">scaler_input</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">scaler_output</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span> <span class="o">=</span> <span class="n">preprocessing</span><span class="o">.</span><span class="n">MaxAbsScaler</span><span class="p">()</span>  
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span> <span class="o">=</span> <span class="n">preprocessing</span><span class="o">.</span><span class="n">MaxAbsScaler</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">tmp_x</span><span class="p">)</span> 
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">tmp_y</span><span class="p">)</span>   
+        
+        <span class="c1"># Scale data</span>
+        <span class="n">tmp_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">tmp_x</span><span class="p">)</span>
+        <span class="n">tmp_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">tmp_y</span><span class="p">)</span>
+
+
+        <span class="c1"># Convert to tensors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">tmp_x</span><span class="p">,</span> \
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">tmp_y</span><span class="p">,</span> \
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">all_xy</span><span class="p">,</span> \
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the length of the dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The number of samples in the dataset.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a sample from the dataset at the given index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): The index of the sample to retrieve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: A tuple of two matrices representing the densities and coefficients.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">densities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span>  <span class="c1"># or just [idx]</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">[</span><span class="n">idx</span><span class="p">,:]</span> 
+        <span class="k">return</span> <span class="p">(</span><span class="n">densities</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span> <span class="c1"># tuple of two matrices </span></div>
+    
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">k_idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">LoadDataset</span><span class="p">(</span><span class="n">src_file</span><span class="o">=</span><span class="s2">&quot;data/datapoints_pressure_3k.txt&quot;</span><span class="p">,</span> <span class="n">nspecies</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">react_idx</span><span class="o">=</span><span class="n">k_idx</span><span class="p">,</span> <span class="n">m_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Marcelo Gonçalves.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
