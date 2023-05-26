@@ -20,16 +20,16 @@ n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
 # Define the model parameters
-input_size = n_surrog*n_param 
+input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
 hidden_size = (10,10)  # architecture of the main model
-max_epoch = 200  
+max_epoch = 200
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 
 # Load surrogate datasets
-datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
+datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog,)]
 
 # Specify loss function
 criterion = MSELoss()
@@ -56,10 +56,18 @@ if device.type == 'cuda':
 plotter = PlottingTools()
 plotter.plot_loss_history(training_losses, validation_losses)
 
-# Get first surrogate model
-surrogate_model = model.surrog_nets[0]
+# Get surrogate models
+surrogate_model_0 = model.surrog_nets[0]
+surrogate_model_1 = model.surrog_nets[1]
 
 # Plot validation using test dataset
 test_dataset = LoadDataset(src_file="data/datapoints_pressure_0_test.txt", nspecies=3, react_idx=k_columns,\
                             scaler_input=datasets[0].scaler_input, scaler_output=datasets[0].scaler_output)
-plotter.plot_predictions(surrogate_model, test_dataset)
+plotter.plot_predictions(surrogate_model_0, test_dataset, filename="predictions_vs_true_values_0.png")
+
+# Plot validation using test dataset
+test_dataset = LoadDataset(src_file="data/datapoints_pressure_1_test.txt", nspecies=3, react_idx=k_columns,\
+                            scaler_input=datasets[1].scaler_input, scaler_output=datasets[1].scaler_output)
+plotter.plot_predictions(surrogate_model_1, test_dataset, filename="predictions_vs_true_values_1.png")
+
+

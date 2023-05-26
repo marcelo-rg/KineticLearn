@@ -91,7 +91,6 @@ class NSurrogatesModelTrainer:
                     # Forward pass
                     output = surrog_net(x_batch)
 
-                    # print("how many times is this printed?")
                     # Compute loss
                     loss = self.surrog_criterion(output, y_batch)
                     epoch_loss += loss.item()  # accumulate avgs

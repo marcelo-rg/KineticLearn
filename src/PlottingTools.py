@@ -22,7 +22,7 @@ class PlottingTools:
             plt.savefig(f'images/surrogate_{i}_loss_history.png')
 
 
-    def plot_predictions(self, model, test_dataset):
+    def plot_predictions(self, model, test_dataset, filename='predictions_vs_true_values.png'):
         model.eval()  # Switch to evaluation mode
 
         # Make sure the data is on the CPU
@@ -66,4 +66,4 @@ class PlottingTools:
                 verticalalignment='top', bbox=props)
 
         plt.tight_layout()
-        plt.savefig('images/predictions_vs_true_values.png')
+        plt.savefig('images/' + filename)
