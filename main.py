@@ -4,7 +4,7 @@ from torch.optim import Adam
 import time
 
 from src.Model import NSurrogatesModel
-from src.DataHandler import LoadDataset
+from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.Trainer import NSurrogatesModelTrainer
 from src.PlottingTools import PlottingTools
 
@@ -31,6 +31,9 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 # Load surrogate datasets
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
+# Load main net dataset
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, react_idx=k_columns)
+
 # Specify loss function
 criterion = MSELoss()
 
@@ -38,7 +41,7 @@ criterion = MSELoss()
 optimizer = Adam(model.parameters(), lr=0.0001)
 
 # Create trainer
-trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, criterion, optimizer)
+trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 
 start = time.time()
 # Train surrogate models

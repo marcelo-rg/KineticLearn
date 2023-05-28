@@ -1,4 +1,5 @@
 import torch
+from torch.nn import MSELoss
 from torch.utils.data import random_split, DataLoader
 
 class NSurrogatesModelTrainer:
@@ -29,10 +30,9 @@ class NSurrogatesModelTrainer:
         val_split (float, optional): The proportion of the dataset to include in the validation split. Default is 0.1.
     """
     
-    def __init__(self, model, datasets, device, main_criterion, surrog_criterion, optimizer, batch_size=20, val_split=0.1):
+    def __init__(self, model, datasets, device, surrog_criterion, optimizer, batch_size=20, val_split=0.1):
         self.model = model
         self.device = device
-        self.main_criterion = main_criterion
         self.surrog_criterion = surrog_criterion
         self.optimizer = optimizer
         self.batch_size = batch_size
@@ -129,6 +129,119 @@ class NSurrogatesModelTrainer:
         # Return the loss history
         return training_losses, validation_losses
 
+    
+    
+    def train_main_model(self, epochs):
+        """
+        Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.
+
+        Each epoch consists of a training phase and a validation phase. In the training phase, the main model is updated
+        to reduce the loss on the training data. In the validation phase, the loss on the validation data is calculated,
+        but the model is not updated. The training and validation losses for each epoch are printed out and stored in
+        dictionaries that are returned by this method.
+
+        Args:
+            epochs (int): The number of epochs to train for.
+
+        Returns:
+            dict: A dictionary mapping the main model to a list of its training losses over all epochs.
+            dict: A dictionary mapping the main model to a list of its validation losses over all epochs.
+        """
+
+        def main_criterion(output, target):
+            """
+            Calculates the main criterion loss as the sum of mean squared errors (MSE) between the surrogate outputs and targets.
+
+            Args:
+                output (torch.Tensor): The surrogate outputs of shape (batch_size, num_pressure_conditions, output_size).
+                target (torch.Tensor): The targets of shape (batch_size, num_pressure_conditions, output_size).
+
+            Returns:
+                torch.Tensor: The main criterion loss.
+            """
+            loss_func = MSELoss()
+            loss = 0.0
+            num_pressure_conditions = output.shape[1]
+            
+            for i in range(num_pressure_conditions):
+                surrogate_output = output[:, i, :]  # Surrogate output for the i-th pressure condition
+                target_i = target[:, i, :]  # Target for the i-th pressure condition
+                loss += loss_func(surrogate_output, target_i)
+
+            return loss
+
+
+        # Initialize dictionaries to store the loss history
+        training_losses = {'main_model': []}
+        validation_losses = {'main_model': []}
+
+        for epoch in range(epochs):
+            main_model = self.model.main_net
+
+            # Training phase
+            main_model.train()  # Set the main model to training mode
+            epoch_loss = 0.0  # Initialize epoch loss for the main model
+
+            for surrogate_net, train_dataloader in zip(self.model.surrog_nets, self.train_dataloaders):
+                surrogate_net.eval()  # Set the surrogate model to evaluation mode
+
+                for _, y_batch in train_dataloader:
+                    # Move data to device
+                    y_batch = y_batch.to(self.device)
+
+                    # Forward pass through the main model
+                    main_output = main_model(y_batch)
+
+                    # Forward pass through the surrogate model
+                    surrogate_output = surrogate_net(main_output)
+
+                    # Compute loss
+                    loss = main_criterion(y_batch, surrogate_output)
+
+                    # Accumulate loss
+                    epoch_loss += loss.item()  # accumulate avgs
+
+                    # Backward pass and optimization
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+
+            # Add loss to history
+            training_losses['main_model'].append(epoch_loss)
+
+            # Validation phase
+            main_model.eval()  # Set the main model to evaluation mode
+            epoch_val_loss = 0.0
+
+            for surrogate_net, val_dataloader in zip(self.model.surrog_nets, self.val_dataloaders):
+                surrogate_net.eval()  # Set the surrogate model to evaluation mode
+
+                for _, y_batch in val_dataloader:
+                    # Move data to device
+                    y_batch = y_batch.to(self.device)
+
+                    # Forward pass through the main model
+                    main_output = main_model(y_batch)
+
+                    # Forward pass through the surrogate model
+                    surrogate_output = surrogate_net(main_output)
+
+                    # Compute loss
+                    val_loss = self.main_criterion(y_batch, surrogate_output)
+
+                    # Accumulate loss
+                    epoch_val_loss += val_loss.item()  # accumulate avgs
+
+            # Add loss to history
+            validation_losses['main_model'].append(epoch_val_loss * (1 - self.val_split) / self.val_split)
+
+            # Print the training and validation losses for this epoch
+            print(f'Epoch {epoch+1}/{epochs}, Training Loss: {epoch_loss}, Validation Loss: {epoch_val_loss*(1-self.val_split)/self.val_split}')
+
+        # Return the loss history
+        return training_losses, validation_losses
+
+    
     
 
     def freeze_surrogate_models(self):
