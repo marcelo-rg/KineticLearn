@@ -161,6 +161,7 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
         x_data = x_data.reshape(num_pressure_conditions, -1, x_data.shape[1])
         y_data = y_data.reshape(num_pressure_conditions, -1, y_data.shape[1])
 
+
         # Convert to tensors
         self.x_data = torch.tensor(x_data, \
             dtype=torch.float64).to(device)
@@ -176,7 +177,7 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
             int: The number of samples in the dataset.
 
         """
-        return len(self.x_data)
+        return len(self.x_data[0])
     
     def __getitem__(self, idx):
         """Get a sample from the dataset at the given index.
@@ -199,4 +200,4 @@ if __name__ == "__main__":
     k_idx = [0,1,2]
     main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, 
                                             num_pressure_conditions=2, react_idx=k_idx)
-    print(main_dataset[0][1]) # [train example 0, densities]
+    print(len(main_dataset)) # [train example 0, densities]
