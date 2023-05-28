@@ -44,6 +44,25 @@ class Parameters():
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.pressure_set = pressure*np.random.uniform(pressure_range[0], pressure_range[1], size = self.n_points)
+
+    def fixed_pressure_set(self, pressures):
+        # make sure k_set is defined
+        if self.k_set is None:
+            print('\nError: k_set is not defined. Please define k_set values for each pressure '+
+                  'or do not call fixed pressures method')
+            exit()
+
+        pressure_set = []
+        for pressure in pressures:
+            pressure_set.append(pressure*np.ones(self.n_points))
+            
+        self.pressure_set = np.array(pressure_set).flatten()
+
+        # now make duplicates of random k_set to have the same size as pressure_set
+        self.k_set = np.tile(self.k_set, (len(pressures),1))
+
+        #update n_points
+        self.n_points = self.pressure_set.size
     
     def random_radius_set(self,radius ,radius_range = [1, 10]):
         self.radius_set = radius*np.random.uniform(radius_range[0], radius_range[1], size = self.n_points)
@@ -105,6 +124,12 @@ class Simulations():
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
+
+    def fixed_pressure_set(self,pressures):
+        self.parameters.fixed_pressure_set(pressures)
+
+        # update nsimualtions
+        self.nsimulations = self.parameters.n_points
     
     def random_radius_set(self,radius ,radius_range = [1, 10]):
         self.parameters.random_radius_set(radius, radius_range)
@@ -272,6 +297,27 @@ class Simulations():
 
 if __name__ == '__main__': 
 
+    # # path to LoKI
+    # loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
+    
+    # # Definition of reaction scheme and setup files
+    # chem_file = "O2_simple_1.chem" 
+    # setup_file = "setup_O2_simple.in"
+
+    # k_columns = [0,1,2] # if None, changes all columns
+    # n_simulations = 3000
+
+    # simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
+    # simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
+    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
+    # # simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
+    # # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
+    # # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
+    # # print( simul.parameters.k_set.shape)
+    # # Run simulations
+    # simul.runSimulations()
+    # simul.writeDataFile(filename='datapoints_pressure_1.txt')
+
     # path to LoKI
     loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
     
@@ -280,15 +326,14 @@ if __name__ == '__main__':
     setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 3000
+    pressures = [1333.32, 133.332] # P0, P1, P2, ... (in Pa)
+    n_simulations = 500
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
     simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
-    # simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
-    # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
-    # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
-    # print( simul.parameters.k_set.shape)
+    simul.fixed_pressure_set(pressures)
+
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_pressure_1.txt')
+    simul.writeDataFile(filename='datapoints_mainNet.txt')
