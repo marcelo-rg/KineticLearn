@@ -280,7 +280,7 @@ if __name__ == '__main__':
     setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
-    n_simulations = 100
+    n_simulations = 3000
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
@@ -291,4 +291,4 @@ if __name__ == '__main__':
     # print( simul.parameters.k_set.shape)
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_pressure_0_test.txt')
+    simul.writeDataFile(filename='datapoints_pressure_1.txt')

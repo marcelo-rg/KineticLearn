@@ -15,7 +15,7 @@ torch.manual_seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 1 # number of surrogate models 
+n_surrog = 2 # number of surrogate models 
 n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
@@ -29,7 +29,7 @@ max_epoch = 200
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 
 # Load surrogate datasets
-datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog,)]
+datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Specify loss function
 criterion = MSELoss()
