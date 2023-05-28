@@ -4,22 +4,36 @@ import numpy as np
 import torch
 
 class PlottingTools:
-    def plot_loss_history(self, training_losses, validation_losses):
+    def __init__(self):
         # Make images directory if it doesn't exist
         if not os.path.exists('images'):
             os.makedirs('images')
 
-        n_epochs = len(training_losses['surrogate_0'])
-
-        for i in range(len(training_losses)):
-            plt.figure(i)
-            plt.plot(np.arange(1,n_epochs+1,1),training_losses[f'surrogate_{i}'],"-o", markersize=4, label='Training Loss')
-            plt.plot(np.arange(1,n_epochs+1,1),validation_losses[f'surrogate_{i}'], "-o", markersize=4, label='Validation Loss')
+    def plot_loss_history(self, training_losses, validation_losses):
+        plt.clf()
+        if 'surrogate_0' in training_losses.keys():
+            n_epochs = len(training_losses['surrogate_0'])
+            for i in range(len(training_losses)):
+                plt.figure(i)
+                plt.plot(np.arange(1,n_epochs+1,1),training_losses[f'surrogate_{i}'],"-o", markersize=4, label='Training Loss')
+                plt.plot(np.arange(1,n_epochs+1,1),validation_losses[f'surrogate_{i}'], "-o", markersize=4, label='Validation Loss')
+                plt.xlabel('Epoch')
+                plt.ylabel('Loss')
+                plt.title(f'Surrogate {i} Loss History')
+                plt.legend()
+                plt.savefig(f'images/surrogate_{i}_loss_history.png')
+        
+        # if training_losses['main_model'] exits, plot main model loss history
+        if 'main_model' in training_losses.keys():
+            n_epochs = len(training_losses['main_model'])
+            plt.figure(len(training_losses))
+            plt.plot(np.arange(1,n_epochs+1,1),training_losses['main_model'],"-o", markersize=4, label='Training Loss')
+            plt.plot(np.arange(1,n_epochs+1,1),validation_losses['main_model'], "-o", markersize=4, label='Validation Loss')
             plt.xlabel('Epoch')
             plt.ylabel('Loss')
-            plt.title(f'Surrogate {i} Loss History')
+            plt.title('Main Model Loss History')
             plt.legend()
-            plt.savefig(f'images/surrogate_{i}_loss_history.png')
+            plt.savefig('images/main_model_loss_history.png')
 
 
     def plot_predictions(self, model, test_dataset, filename='predictions_vs_true_values.png'):

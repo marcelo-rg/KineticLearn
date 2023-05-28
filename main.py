@@ -23,7 +23,7 @@ k_columns = [0,1,2]
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
 hidden_size = (10,10)  # architecture of the main model
-max_epoch = 200
+max_epoch = 10
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
@@ -58,8 +58,9 @@ if device.type == 'cuda':
     model = model.to('cpu')
 
 # # Plot training and validation loss histories
-# plotter = PlottingTools()
-# plotter.plot_loss_history(training_losses, validation_losses)
+plotter = PlottingTools()
+plotter.plot_loss_history(training_losses, validation_losses)
+plotter.plot_loss_history(training_losses_main, validation_losses_main)
 
 # # Get surrogate models
 # surrogate_model_0 = model.surrog_nets[0]
