@@ -158,8 +158,8 @@ class NSurrogatesModelTrainer:
         train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
 
         # Create dataloaders
-        train_dataloader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-        val_dataloader = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=True)
+        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=True)
 
         def main_criterion(output, target):
             """
@@ -205,15 +205,15 @@ class NSurrogatesModelTrainer:
 
                 # Compute loss
                 surrogate_outputs = []
-                for surrogate_net in self.model.surrog_nets:
-                    surrogate_net.eval()  # Set the surrogate model to evaluation mode
 
+                for surrogate_net in self.model.surrog_nets:
+                    surrogate_net.eval()
                     # Forward pass through the surrogate model
                     surrogate_output = surrogate_net(main_output)
-                    surrogate_outputs.append(surrogate_output)
+                    surrogate_outputs.append(surrogate_output.requires_grad_(True))  # Set requires_grad to True
 
                 # Stack surrogate outputs along the second dimension
-                surrogate_outputs = torch.stack(surrogate_outputs, dim=1)  
+                surrogate_outputs = torch.stack(surrogate_outputs, dim=1)
 
                 loss = main_criterion(surrogate_outputs, y_batch)
 
@@ -223,6 +223,8 @@ class NSurrogatesModelTrainer:
                 # Backward pass and optimization
                 self.optimizer.zero_grad()
                 loss.backward()
+                # freeze surrogate models
+                # self.freeze_surrogate_models()
                 self.optimizer.step()
 
             # Add loss to history
