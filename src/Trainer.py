@@ -204,6 +204,12 @@ class NSurrogatesModelTrainer:
                 surrogate_output = output[:, i, :]  # Surrogate output for the i-th pressure condition
                 target_i = target[:, i, :]  # Target for the i-th pressure condition
                 loss += loss_func(surrogate_output, target_i)
+            
+            # try to recover training with only one pressure condition
+            # surrogate_output = output[:, 0, :]  # Surrogate output for the i-th pressure condition
+            # target_i = target[:, 0, :]  # Target for the i-th pressure condition
+            # loss = loss_func(surrogate_output, target_i)
+
 
             return loss
 
