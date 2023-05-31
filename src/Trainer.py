@@ -175,10 +175,6 @@ class NSurrogatesModelTrainer:
             loss_func = MSELoss()
             loss = 0.0
             num_pressure_conditions = output.shape[1]
-            # print(num_pressure_conditions)
-            # print(output.shape)
-            # print(target.shape)
-            # exit()
 
             for i in range(num_pressure_conditions):
                 surrogate_output = output[:, i, :]  # Surrogate output for the i-th pressure condition

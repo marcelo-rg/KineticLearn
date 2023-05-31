@@ -47,7 +47,7 @@ class PlottingTools:
         test_targets = test_dataset.y_data.to("cpu")
 
         with torch.no_grad():  # Disable gradient calculation
-            main_input = test_targets.reshape(-1, model.input_size*model.n_surrog)  # 6 if using 6 species
+            main_input = test_targets.reshape(-1, 3*model.n_surrog)  # 3 if using 3 densities
             predictions_k = main_net(main_input)
             predictions_densities = []
             for surrogate in surrogates:
@@ -92,6 +92,38 @@ class PlottingTools:
 
         plt.tight_layout()
         plt.savefig('images/' + filename)
+
+        # PLot output of main model vs true values (test data)
+        true_values = test_data.numpy()
+        fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+        for i, ax in enumerate(axs):
+            ax.scatter(true_values[0,:, i], predictions_k[:, i], color = 'r')
+            ax.set_xlabel('True Values')
+            ax.set_ylabel('Predictions')
+            # Add a diagonal line representing perfect agreement
+            ax.plot([0, 1], [0, 1], linestyle='--', color='k')
+            ax.set_title(f'True Values vs Predictions for k{i+1}')
+
+            # Calculate relative error
+            rel_err = np.abs(np.subtract(true_values[0,:, i], predictions_k[:, i]) / true_values[0,:, i])
+
+            textstr = '\n'.join((
+                r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean() * 100,),
+                r'$Max\ \epsilon_{rel}=%.2f$%%' % (max(rel_err) * 100,)))
+
+            # Colour point with max error
+            max_index = np.argmax(rel_err)
+            ax.scatter(true_values[0,max_index, i], predictions_k[max_index, i], color="gold", zorder=2)
+
+            # Define the text box properties
+            props = dict(boxstyle='round', alpha=0.5)
+
+            # Place a text box in upper left in axes coords
+            ax.text(0.63, 0.25, textstr, fontsize=10, transform=ax.transAxes,
+                    verticalalignment='top', bbox=props)
+        
+        plt.tight_layout()
+        plt.savefig('images/main_model_predictions_vs_true_values_ks.png')
 
 
     def plot_predictions_surrog(self, model, test_dataset, filename='predictions_vs_true_values_mainModel.png'):
@@ -139,6 +171,8 @@ class PlottingTools:
 
         plt.tight_layout()
         plt.savefig('images/' + filename)
+
+
 
 if __name__ == "__main__":
     # array of shape (2,5,3)
