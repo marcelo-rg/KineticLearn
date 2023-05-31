@@ -64,7 +64,7 @@ class PlottingTools:
         # For each surrogate model
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
-            for i, ax in enumerate(axs): #axs[idx]
+            for i, ax in enumerate(axs[idx]): #axs[idx]
                 ax.scatter(true_values[idx,:,i], prediction[:, i], color= colors[idx])
                 ax.set_xlabel('True Values')
                 ax.set_ylabel('Predictions')

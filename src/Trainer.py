@@ -133,7 +133,7 @@ class NSurrogatesModelTrainer:
 
     
 
-    def train_main_model(self, main_dataset, epochs):
+    def train_main_model(self, main_dataset, epochs, pretrain=False):
         """
         Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.
 
@@ -161,6 +161,30 @@ class NSurrogatesModelTrainer:
         train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=True)
         val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=True)
 
+        main_model = self.model.main_net
+
+        if pretrain:
+            loss_func = MSELoss()
+            main_model.train()
+            for epoch in range(epochs):
+                epoch_loss = 0.0
+                for x_batch,y_batch in train_dataloader:
+                    x_batch = x_batch.to(self.device)
+                    # print(x_batch.shape)
+                    output = main_model(y_batch.flatten(start_dim=1))
+                    # print(output.shape)
+                    # exit()
+                    loss = loss_func(output, x_batch[:,0,:])
+                    epoch_loss += loss.item()
+
+                    self.optimizer.zero_grad()
+                    loss.backward()
+                    self.optimizer.step()
+
+                # Print the training and validation losses for this epoch
+                print(f'Pretrain: Epoch {epoch+1}/{epochs}, Training Loss: {epoch_loss}')
+
+
         def main_criterion(output, target):
             """
             Calculates the main criterion loss as the sum of mean squared errors (MSE) between the surrogate outputs and targets.
@@ -187,8 +211,8 @@ class NSurrogatesModelTrainer:
         training_losses = {'main_model': []}
         validation_losses = {'main_model': []}
 
+    
         for epoch in range(epochs):
-            main_model = self.model.main_net
 
             # Training phase
             main_model.train()  # Set the main model to training mode

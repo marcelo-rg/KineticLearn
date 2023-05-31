@@ -15,15 +15,15 @@ torch.manual_seed(101)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 1 # number of surrogate models 
+n_surrog = 2 # number of surrogate models 
 n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
 # Define the model parameters
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (30,30)  # architecture of the main model
-max_epoch = 200
+hidden_size = (20,20)  # architecture of the main model
+max_epoch = 100
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
@@ -55,7 +55,7 @@ training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 100)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 100, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
