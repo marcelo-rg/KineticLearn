@@ -47,7 +47,7 @@ class PlottingTools:
         test_targets = test_dataset.y_data.to("cpu")
 
         with torch.no_grad():  # Disable gradient calculation
-            main_input = test_targets.reshape(-1, 6)  # 6 if using 6 species
+            main_input = test_targets.reshape(-1, model.input_size*model.n_surrog)  # 6 if using 6 species
             predictions_k = main_net(main_input)
             predictions_densities = []
             for surrogate in surrogates:
@@ -60,13 +60,12 @@ class PlottingTools:
 
         species = ['O2(X)', 'O2(a)', 'O(3P)']
         fig, axs = plt.subplots(len(predictions_densities), 3, figsize=(15, 7))
+        colors = ['b', 'g']
         # For each surrogate model
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
-            for i, ax in enumerate(axs[idx]):
-                # print(true_values[idx,:,i].shape, prediction[:, i].shape)
-                # exit()
-                ax.scatter(true_values[idx,:,i], prediction[:, i])
+            for i, ax in enumerate(axs): #axs[idx]
+                ax.scatter(true_values[idx,:,i], prediction[:, i], color= colors[idx])
                 ax.set_xlabel('True Values')
                 ax.set_ylabel('Predictions')
                 # Add a diagonal line representing perfect agreement

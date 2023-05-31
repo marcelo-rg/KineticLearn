@@ -175,6 +175,10 @@ class NSurrogatesModelTrainer:
             loss_func = MSELoss()
             loss = 0.0
             num_pressure_conditions = output.shape[1]
+            # print(num_pressure_conditions)
+            # print(output.shape)
+            # print(target.shape)
+            # exit()
 
             for i in range(num_pressure_conditions):
                 surrogate_output = output[:, i, :]  # Surrogate output for the i-th pressure condition
@@ -210,7 +214,7 @@ class NSurrogatesModelTrainer:
                     surrogate_net.eval()
                     # Forward pass through the surrogate model
                     surrogate_output = surrogate_net(main_output)
-                    surrogate_outputs.append(surrogate_output.requires_grad_(True))  # Set requires_grad to True
+                    surrogate_outputs.append(surrogate_output)  # Set requires_grad to True
 
                 # Stack surrogate outputs along the second dimension
                 surrogate_outputs = torch.stack(surrogate_outputs, dim=1)
@@ -218,7 +222,7 @@ class NSurrogatesModelTrainer:
                 loss = main_criterion(surrogate_outputs, y_batch)
 
                 # Accumulate loss
-                epoch_loss += loss.item()
+                epoch_loss += loss
 
                 # Backward pass and optimization
                 self.optimizer.zero_grad()
@@ -228,7 +232,7 @@ class NSurrogatesModelTrainer:
                 self.optimizer.step()
 
             # Add loss to history
-            training_losses['main_model'].append(epoch_loss)
+            training_losses['main_model'].append(epoch_loss.item())
 
 
             # Validation phase
