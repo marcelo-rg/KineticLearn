@@ -32,7 +32,9 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_01.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns)
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
+                                         scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
+
 
 # Specify loss function
 criterion = MSELoss()
@@ -88,7 +90,7 @@ plotter.plot_predictions_surrog(surrogate_model_1, test_dataset, filename="predi
 
 
 # Plot validation of main net
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_01.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output)
+main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
+                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)
 
 plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png")

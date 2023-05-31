@@ -129,8 +129,6 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
     def __init__(self, src_file, nspecies, num_pressure_conditions, react_idx=None, m_rows=None, columns=None,
                  scaler_input=None, scaler_output=None):
         super(LoadMultiPressureDataset, self).__init__()
-        self.scaler_input = scaler_input
-        self.scaler_output = scaler_output
         self.num_pressure_conditions = num_pressure_conditions
 
         all_data = np.loadtxt(src_file, max_rows=m_rows,
@@ -146,53 +144,36 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
         x_data = all_data[:, x_columns] * 10  # k's  # *10 to avoid being at float32 precision limit 1e-17
         y_data = all_data[:, y_columns]  # densities
 
-        # Create scalers
-        if scaler_input is None and scaler_output is None:
-            self.scaler_input = preprocessing.MaxAbsScaler()
-            self.scaler_output = preprocessing.MaxAbsScaler()
-            self.scaler_input.fit(x_data)
-            self.scaler_output.fit(y_data)
-
-        # Scale data
-        x_data = self.scaler_input.transform(x_data)
-        y_data = self.scaler_output.transform(y_data)
-
         # Reshape data for multiple pressure conditions
         x_data = x_data.reshape(num_pressure_conditions, -1, x_data.shape[1])
         y_data = y_data.reshape(num_pressure_conditions, -1, y_data.shape[1])
 
+        # Create scalers
+        self.scaler_input = scaler_input or [preprocessing.MaxAbsScaler() for _ in range(num_pressure_conditions)]
+        self.scaler_output = scaler_output or [preprocessing.MaxAbsScaler() for _ in range(num_pressure_conditions)]
+        
+        for i in range(num_pressure_conditions):
+            if scaler_input is None:
+                self.scaler_input[i].fit(x_data[i])
+            if scaler_output is None:
+                self.scaler_output[i].fit(y_data[i])
+            x_data[i] = self.scaler_input[i].transform(x_data[i])
+            y_data[i] = self.scaler_output[i].transform(y_data[i])
 
         # Convert to tensors
-        self.x_data = torch.tensor(x_data, \
-            dtype=torch.float64).to(device)
-        self.y_data = torch.tensor(y_data, \
-            dtype=torch.float64).to(device)
-        self.all_data = torch.tensor(all_data, \
-            dtype=torch.float64).to(device)
+        self.x_data = torch.tensor(x_data, dtype=torch.float64).to(device)
+        self.y_data = torch.tensor(y_data, dtype=torch.float64).to(device)
+        self.all_data = torch.tensor(all_data, dtype=torch.float64).to(device)
 
     def __len__(self):
-        """Return the length of the dataset.
-
-        Returns:
-            int: The number of samples in the dataset.
-
-        """
+        """Return the length of the dataset."""
         return len(self.x_data[0])
     
     def __getitem__(self, idx):
-        """Get a sample from the dataset at the given index.
-
-        Args:
-            idx (int): The index of the sample to retrieve.
-
-        Returns:
-            tuple: A tuple of two matrices representing the densities and coefficients.
-
-        """
+        """Get a sample from the dataset at the given index."""
         densities = self.x_data[:, idx, :]  # Extract densities for all pressure conditions
         coef = self.y_data[:, idx, :]  # Extract coefficients for all pressure conditions
         return (densities, coef)  # Tuple of two matrices
-
 
 
 
@@ -200,4 +181,5 @@ if __name__ == "__main__":
     k_idx = [0,1,2]
     main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, 
                                             num_pressure_conditions=2, react_idx=k_idx)
-    print(len(main_dataset)) # [train example 0, densities]
+    (densities , coef) = main_dataset
+    print(main_dataset[0,:]) # [train example 0, densities]

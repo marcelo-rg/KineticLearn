@@ -47,7 +47,9 @@ class PlottingTools:
         test_targets = test_dataset.y_data.to("cpu")
 
         with torch.no_grad():  # Disable gradient calculation
-            main_input = test_targets.reshape(-1, 3*model.n_surrog)  # 3 if using 3 densities
+            # original_data is of shape [n_conditions, batch_size, n_features]
+            transposed_data = test_targets.transpose(0, 1)  # Now it's [batch_size, n_conditions, n_features]
+            main_input = transposed_data.flatten(start_dim =1)  # Now it's [batch_size, n_conditions * n_features]            
             predictions_k = main_net(main_input)
             predictions_densities = []
             for surrogate in surrogates:
@@ -60,11 +62,12 @@ class PlottingTools:
 
         species = ['O2(X)', 'O2(a)', 'O(3P)']
         fig, axs = plt.subplots(len(predictions_densities), 3, figsize=(15, 7))
+        axs = np.atleast_2d(axs) # Make sure axs is 2D
         colors = ['b', 'g']
         # For each surrogate model
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
-            for i, ax in enumerate(axs[idx]): #axs[idx]
+            for i, ax in enumerate(axs[idx]): # if len(predictions_densities) = 1, Error: axs[idx] is not iterable
                 ax.scatter(true_values[idx,:,i], prediction[:, i], color= colors[idx])
                 ax.set_xlabel('True Values')
                 ax.set_ylabel('Predictions')

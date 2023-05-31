@@ -1,6 +1,7 @@
 import torch
 from torch.nn import MSELoss
 from torch.utils.data import random_split, DataLoader
+import numpy as np
 
 class NSurrogatesModelTrainer:
     """
@@ -158,8 +159,9 @@ class NSurrogatesModelTrainer:
         train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
 
         # Create dataloaders
-        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=True)
-        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=True)
+        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
+        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
+
 
         main_model = self.model.main_net
 
@@ -169,11 +171,7 @@ class NSurrogatesModelTrainer:
             for epoch in range(epochs):
                 epoch_loss = 0.0
                 for x_batch,y_batch in train_dataloader:
-                    x_batch = x_batch.to(self.device)
-                    # print(x_batch.shape)
                     output = main_model(y_batch.flatten(start_dim=1))
-                    # print(output.shape)
-                    # exit()
                     loss = loss_func(output, x_batch[:,0,:])
                     epoch_loss += loss.item()
 
@@ -205,7 +203,7 @@ class NSurrogatesModelTrainer:
                 target_i = target[:, i, :]  # Target for the i-th pressure condition
                 loss += loss_func(surrogate_output, target_i)
             
-            # try to recover training with only one pressure condition
+            # # try to recover training with only one pressure condition
             # surrogate_output = output[:, 0, :]  # Surrogate output for the i-th pressure condition
             # target_i = target[:, 0, :]  # Target for the i-th pressure condition
             # loss = loss_func(surrogate_output, target_i)
