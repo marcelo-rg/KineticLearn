@@ -319,7 +319,7 @@ if __name__ == '__main__':
     # simul.writeDataFile(filename='datapoints_pressure_1.txt')
 
     # path to LoKI
-    loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
+    loki_path = "D:\\Marcelo" + '\\LoKI_v3.1.0'
     
     # Definition of reaction scheme and setup files
     chem_file = "O2_simple_1.chem" 
@@ -327,7 +327,7 @@ if __name__ == '__main__':
 
     k_columns = [0,1,2] # if None, changes all columns
     pressures = [1333.32, 133.332] # P0, P1, P2, ... (in Pa)
-    n_simulations = 100
+    n_simulations = 2000
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
@@ -336,4 +336,4 @@ if __name__ == '__main__':
 
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_mainNet_test.txt')
+    simul.writeDataFile(filename='datapoints_mainNet_2k.txt')
