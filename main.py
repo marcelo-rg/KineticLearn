@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (20,20)  # architecture of the main model
+hidden_size = (10,10)  # architecture of the main model
 max_epoch = 200
 
 # Initialize your model
@@ -32,7 +32,7 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
 
@@ -57,7 +57,7 @@ training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 100, pretrain=False)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
