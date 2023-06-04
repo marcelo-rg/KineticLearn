@@ -41,6 +41,13 @@ class Parameters():
 
         for (idx, item) in enumerate(kcolumns):
             self.k_set[:,item] = array_random[idx]*k[item]
+
+    def fixed_kset(self, k):
+        k_set = []
+        for k_idx in range(k.size):
+            k_set.append(k[k_idx]*np.ones(self.n_points))
+
+        self.k_set = np.transpose(k_set)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.pressure_set = pressure*np.random.uniform(pressure_range[0], pressure_range[1], size = self.n_points)
@@ -121,6 +128,9 @@ class Simulations():
             k= None
 
         self.parameters.random_kset(k , kcolumns, krange)
+
+    def fixed_kset(self, k):
+        self.parameters.fixed_kset(k)
     
     def random_pressure_set(self,pressure ,pressure_range = [1, 10]):
         self.parameters.random_pressure_set(pressure, pressure_range)
@@ -319,7 +329,7 @@ if __name__ == '__main__':
     # simul.writeDataFile(filename='datapoints_pressure_1.txt')
 
     # path to LoKI
-    loki_path = "D:\\Marcelo" + '\\LoKI_v3.1.0'
+    loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
     
     # Definition of reaction scheme and setup files
     chem_file = "O2_simple_1.chem" 
@@ -327,13 +337,15 @@ if __name__ == '__main__':
 
     k_columns = [0,1,2] # if None, changes all columns
     pressures = [1333.32, 133.332] # P0, P1, P2, ... (in Pa)
-    n_simulations = 2000
+    n_simulations = 1
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
+    simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
+    k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53])
+    simul.fixed_kset(k)
+    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
     simul.fixed_pressure_set(pressures)
 
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_mainNet_2k.txt')
+    simul.writeDataFile(filename='2truePoints.txt')

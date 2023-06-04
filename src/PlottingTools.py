@@ -107,6 +107,7 @@ class PlottingTools:
             ax.plot([0, 1], [0, 1], linestyle='--', color='k')
             ax.set_title(f'True Values vs Predictions for k{i+1}')
 
+
             # Calculate relative error
             rel_err = np.abs(np.subtract(true_values[0,:, i], predictions_k[:, i]) / true_values[0,:, i])
 
@@ -125,6 +126,10 @@ class PlottingTools:
             ax.text(0.63, 0.25, textstr, fontsize=10, transform=ax.transAxes,
                     verticalalignment='top', bbox=props)
         
+        # Color blue the first point for each pressure condition (true physical values)
+        for i in range(3):
+            axs[i].scatter(true_values[0,0, i], predictions_k[0, i], color = 'b')
+
         plt.tight_layout()
         plt.savefig('images/main_model_predictions_vs_true_values_ks.png')
 

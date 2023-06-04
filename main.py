@@ -9,7 +9,7 @@ from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
 
 # recover reproducibility
-torch.manual_seed(0)
+torch.manual_seed(4)
 
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -57,7 +57,7 @@ training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 400, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
