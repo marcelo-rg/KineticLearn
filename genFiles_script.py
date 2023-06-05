@@ -336,16 +336,16 @@ if __name__ == '__main__':
     setup_file = "setup_O2_simple.in"
 
     k_columns = [0,1,2] # if None, changes all columns
-    pressures = [1333.32, 133.332] # P0, P1, P2, ... (in Pa)
-    n_simulations = 1
+    pressures = [666.66] # P0, P1, P2, ... (in Pa)
+    n_simulations = 2000
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
+    simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
     k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53])
-    simul.fixed_kset(k)
-    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
+    # simul.fixed_kset(k)
+    simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
     simul.fixed_pressure_set(pressures)
 
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='2truePoints.txt')
+    simul.writeDataFile(filename='datapoints_mainNet_P_666.66.txt')
