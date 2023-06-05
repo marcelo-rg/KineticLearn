@@ -1,4 +1,4 @@
-import numpy as np
+import os
 import torch 
 import torch.nn as nn
 # torch.set_default_tensor_type(torch.DoubleTensor)
@@ -75,8 +75,25 @@ class NeuralNet(nn.Module):
 
         """
         return self.model(x)
+    
+    def save_model(self, filename):
+        """Save the model to a file.
 
+        Args:
+            filename (str): The name of the file to save the model to.
 
+        """
+        torch.save(self.model.state_dict(), os.path.join("checkpoints/", filename))
+
+    def load_model(self, filename):
+        """Load the model from a file.
+
+        Args:
+            filename (str): The name of the file to load the model from.
+
+        """
+        self.model.load_state_dict(torch.load(os.path.join("checkpoints/", filename)))
+        self.model.eval()
 
 
 if __name__ == "__main__":

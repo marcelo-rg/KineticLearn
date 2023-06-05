@@ -1,7 +1,7 @@
 import torch
 from torch.nn import MSELoss
 from torch.utils.data import random_split, DataLoader
-import numpy as np
+import os
 
 class NSurrogatesModelTrainer:
     """
@@ -330,4 +330,26 @@ class NSurrogatesModelTrainer:
         dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
         self.dataloaders.append(dataloader)
         self.datasets.append(dataset)
+    
+    def save_surrogate_models(self):
+        """
+        Save the surrogate models
+        """
+        # prinr current directory
+        print(os.getcwd())
 
+        directory = "checkpoints"
+        if not os.path.exists(directory):
+            print("creating directory ", directory) 
+            os.makedirs(directory)
+        for i, surrog_net in enumerate(self.model.surrog_nets):
+            if (surrog_net.save_model(f"surrogate_model_{i}.pth")):
+                print("saving surrogate model ", i)
+
+    def load_surrogate_models(self):
+        """
+        Load the surrogate models
+        """
+        for i, surrog_net in enumerate(self.model.surrog_nets):
+            if (surrog_net.load_model(f"surrogate_model_{i}.pth")):
+                print("loading surrogate model ", i, "...")

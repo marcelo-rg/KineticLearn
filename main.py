@@ -49,7 +49,10 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 
 start = time.time()
 # Train surrogate models
-training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
+# training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
+
+# Load surrogate models
+trainer.load_surrogate_models()
 
 # trainer.freeze_surrogate_models()
 
@@ -70,7 +73,7 @@ if device.type == 'cuda':
 
 # # Plot training and validation loss histories
 plotter = PlottingTools()
-plotter.plot_loss_history(training_losses, validation_losses)
+# plotter.plot_loss_history(training_losses, validation_losses)
 # plotter.plot_loss_history(training_losses_main, validation_losses_main)
 
 # Get main net

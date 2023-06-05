@@ -1,4 +1,6 @@
 import torch.nn as nn
+import torch
+import os
 
 from src.NeuralNetworkModels import NeuralNet
 
@@ -88,3 +90,21 @@ class NSurrogatesModel(nn.Module):
         surrog_net = NeuralNet(input_size, output_size, hidden_size=hidden_size, activ_f=activ_f)
         self.surrog_nets.append(surrog_net)
         self.n_surrog += 1
+
+    def save_model_parameters(self, filename):
+        """
+        Saves the model parameters to a file.
+
+        Args:
+            filename (str): The name of the file to save the parameters to.
+        """
+        torch.save(self.state_dict(), os.path.join("/checkpoints/", filename))
+
+    def load_model_parameters(self, filename):
+        """
+        Loads the model parameters from a file.
+
+        Args:
+            filename (str): The name of the file to load the parameters from.
+        """
+        self.load_state_dict(torch.load(os.path.join("/checkpoints/", filename)))
