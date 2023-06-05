@@ -15,7 +15,7 @@ torch.manual_seed(4)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 2 # number of surrogate models 
+n_surrog = 3 # number of surrogate models 
 n_param = 3 # number of input densities
 k_columns = [0,1,2]
 
@@ -32,8 +32,8 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
-                                         scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
+# main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
+#                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
 
 # Specify loss function
@@ -57,7 +57,7 @@ training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 400, pretrain=True)
+# training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 400, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
@@ -71,26 +71,26 @@ if device.type == 'cuda':
 # # Plot training and validation loss histories
 plotter = PlottingTools()
 plotter.plot_loss_history(training_losses, validation_losses)
-plotter.plot_loss_history(training_losses_main, validation_losses_main)
+# plotter.plot_loss_history(training_losses_main, validation_losses_main)
 
-# Get surrogate models and main net
-surrogate_model_0 = model.surrog_nets[0]
-surrogate_model_1 = model.surrog_nets[1]
+# Get main net
 main_net = model.main_net
 
-# Plot validation using test dataset 0
-test_dataset = LoadDataset(src_file="data/datapoints_pressure_0_test.txt", nspecies=3, react_idx=k_columns,\
-                            scaler_input=datasets[0].scaler_input, scaler_output=datasets[0].scaler_output)
-plotter.plot_predictions_surrog(surrogate_model_0, test_dataset, filename="predictions_vs_true_values_0.png")
+# Loop through surrogate models
+for i in range(n_surrog):
+    surrogate_model = model.surrog_nets[i]
+    
+    # Load test dataset
+    test_dataset = LoadDataset(src_file=f"data/datapoints_pressure_{i}_test.txt", nspecies=3, react_idx=k_columns,\
+                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output)
+    
+    # Plot validation
+    plotter.plot_predictions_surrog(surrogate_model, test_dataset, filename=f"predictions_vs_true_values_{i}.png")
 
-# Plot validation using test dataset 1
-test_dataset = LoadDataset(src_file="data/datapoints_pressure_1_test.txt", nspecies=3, react_idx=k_columns,\
-                            scaler_input=datasets[1].scaler_input, scaler_output=datasets[1].scaler_output)
-plotter.plot_predictions_surrog(surrogate_model_1, test_dataset, filename="predictions_vs_true_values_1.png")
 
 
 # Plot validation of main net
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)
+# main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
+#                             scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)
 
-plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png")
+# plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png")
