@@ -63,7 +63,7 @@ class PlottingTools:
         species = ['O2(X)', 'O2(a)', 'O(3P)']
         fig, axs = plt.subplots(len(predictions_densities), 3, figsize=(15, 7))
         axs = np.atleast_2d(axs) # Make sure axs is 2D
-        colors = ['b', 'g']
+        colors = ['b', 'g', 'c', 'm', 'y', 'k', 'w']
         # For each surrogate model
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
