@@ -159,8 +159,8 @@ class NSurrogatesModelTrainer:
         train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
 
         # Create dataloaders
-        train_dataloader = DataLoader(train_dataset, batch_size=3000, shuffle=False)
-        val_dataloader = DataLoader(val_dataset, batch_size=3000, shuffle=False)
+        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
+        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
 
 
         main_model = self.model.main_net

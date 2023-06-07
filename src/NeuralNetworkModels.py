@@ -1,7 +1,6 @@
 import os
 import torch 
 import torch.nn as nn
-# torch.set_default_tensor_type(torch.DoubleTensor)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # -----------------------------------------------------------
@@ -94,9 +93,19 @@ class NeuralNet(nn.Module):
         """
         self.model.load_state_dict(torch.load(os.path.join("checkpoints/", filename)))
         self.model.eval()
+    
+    def reset_parameters(self):
+        """
+        Reset the model parameters by re-initializing the weights.
+        """
+        for module in self.model.modules():
+            if isinstance(module, nn.Linear):
+                # Reset the weights
+                nn.init.kaiming_uniform_(module.weight)
+                if module.bias is not None:
+                    # Reset the biases
+                    nn.init.constant_(module.bias, 0.0)
 
 
 if __name__ == "__main__":
-    print("NeuralNetworkModels.py")
-    net = NeuralNet(4, 3, hidden_size=(100, 100), activ_f='tanh', out_activ_f=None)
-    print(net)
+    pass

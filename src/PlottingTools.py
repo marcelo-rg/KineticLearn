@@ -84,7 +84,6 @@ class PlottingTools:
 
                 # Colour point with max error
                 max_index = np.argmax(rel_err)
-                print("max_index: ",max_index)
                 ax.scatter(true_values[idx,max_index, i], prediction[max_index, i], color="gold", zorder=2)
 
                 # Define the text box properties
@@ -181,6 +180,33 @@ class PlottingTools:
         plt.tight_layout()
         plt.savefig('images/' + filename)
 
+
+
+    def get_relative_error(self, neural_net, test_dataset):
+        main_net = neural_net
+        main_net.eval()  # Switch to evaluation mode
+
+        # Make sure the data is on the CPU
+        test_data = test_dataset.x_data.to("cpu")
+        test_targets = test_dataset.y_data.to("cpu")
+
+        with torch.no_grad():  # Disable gradient calculation
+            # original_data is of shape [n_conditions, batch_size, n_features]
+            transposed_data = test_targets.transpose(0, 1)  # Now it's [batch_size, n_conditions, n_features]
+            main_input = transposed_data.flatten(start_dim =1)  # Now it's [batch_size, n_conditions * n_features]            
+            predictions_k = main_net(main_input)
+
+        # Convert tensors to numpy arrays
+        predictions_k = predictions_k.numpy()
+        true_values = true_values = test_data.numpy()
+
+        rel_errors = []
+        for i in range(len(predictions_k[0])):
+            # Calculate relative error
+            rel_err = np.abs(np.subtract(true_values[0,:, i], predictions_k[:, i]) / true_values[0,:, i])
+            rel_errors.append(rel_err.mean() * 100)
+
+        return rel_errors
 
 
 if __name__ == "__main__":
