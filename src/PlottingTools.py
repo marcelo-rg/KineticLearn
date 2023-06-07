@@ -84,6 +84,7 @@ class PlottingTools:
 
                 # Colour point with max error
                 max_index = np.argmax(rel_err)
+                print("max_index: ",max_index)
                 ax.scatter(true_values[idx,max_index, i], prediction[max_index, i], color="gold", zorder=2)
 
                 # Define the text box properties
