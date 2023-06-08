@@ -1,5 +1,5 @@
-from genFiles_script import Simulations
-import genFiles_script
+from genFiles_O2_simple import Simulations
+import genFiles_O2_simple
 
 if __name__ == "__main__":
     # path to LoKI
