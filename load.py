@@ -61,7 +61,8 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 trainer.load_surrogate_models()
 
 # Load main net
-trainer.model.main_net.load_model("seeds_checkpoints/main_model_seed0.pth")
+seed_idx = 7
+trainer.model.main_net.load_model(f"seeds_checkpoints/main_model_seed{seed_idx}.pth")
 
 # -------------------   Evaluation   ------------------- #
 

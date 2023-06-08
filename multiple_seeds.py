@@ -73,7 +73,7 @@ for idx, seed in enumerate(seeds):
     main_net.reset_parameters()
 
     # Train main net
-    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=False)
 
     # Save info
     loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
