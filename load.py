@@ -8,11 +8,6 @@ from src.Trainer import NSurrogatesModelTrainer
 from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
 
-# make directory t save multiple models
-import os
-if not os.path.exists('checkpoints/seeds_checkpoints'):
-    os.makedirs('checkpoints/seeds_checkpoints')
-
 
 # recover reproducibility
 torch.manual_seed(8)
@@ -61,7 +56,7 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 trainer.load_surrogate_models()
 
 # Load main net
-seed_idx = 7
+seed_idx = 92
 trainer.model.main_net.load_model(f"seeds_checkpoints/main_model_seed{seed_idx}.pth")
 
 # -------------------   Evaluation   ------------------- #

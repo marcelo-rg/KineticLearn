@@ -8,7 +8,7 @@ from src.Trainer import NSurrogatesModelTrainer
 from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
 
-# make directory t save multiple models
+# make directory to save multiple models
 import os
 if not os.path.exists('checkpoints/seeds_checkpoints'):
     os.makedirs('checkpoints/seeds_checkpoints')
@@ -38,7 +38,7 @@ plotter = PlottingTools()
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 
 # Load surrogate datasets
-datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
+datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt",nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Load main net datasets
 main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
@@ -61,7 +61,7 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 trainer.load_surrogate_models()
 
 # gen list of random seeds
-seeds = [i for i in range(20)]
+seeds = [i for i in range(100)]
 loss_list = []
 rel_error_list = []
 
@@ -73,7 +73,7 @@ for idx, seed in enumerate(seeds):
     main_net.reset_parameters()
 
     # Train main net
-    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=False)
+    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
 
     # Save info
     loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
