@@ -91,7 +91,8 @@ class Simulations():
         self.parameters = Parameters(npoints)
 
         self._generateChemFiles= False
-        # self.setup_file = setup_file
+        self.setup_file = setup_file
+        self.chem_file = chem_file
         self.outptFolder = chem_file[:-5]
         # create input folder if does not exist
         dir = self.loki_path+ '\\Code\\Input\\'+self.outptFolder
@@ -102,7 +103,7 @@ class Simulations():
     def morris_kset(self, p, r, k_range_type, k_range, kcolumns=None):
         # read the k values from the chem file (to be used in the morris_kset method)
         if self._generateChemFiles:
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file :
                 values = []
                 for line in file:
                     values.append(line.split()[-2])
@@ -146,7 +147,7 @@ class Simulations():
         def replace_values(filename, new_values, indices):
             assert len(new_values) == len(indices), "The length of new_values and indices must be the same."
 
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file:
                 content = file.readlines()
 
             matches = []
@@ -178,7 +179,7 @@ class Simulations():
 
     def _genSetupFiles(self):
         # Read in the example file
-        with open(self.cwd + '\\simulFiles\\' + setup_file, 'r') as file :
+        with open(self.cwd + '\\simulFiles\\' + self.setup_file, 'r') as file :
             setup_data = file.read() # (for the setup files we dont need to separate the string in lines)
         
         # Then replace for all self.parameters 
@@ -201,7 +202,7 @@ class Simulations():
                 setup_data = re.sub(r'electronDensity: \d+.\d+', 'electronDensity: ' + "{:.4f}".format(self.parameters.electDensity_set[j]), setup_data)
 
             # Write out the setUp files
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+setup_file[:-3]+'_' +str(j)+'.in', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+self.setup_file[:-3]+'_' +str(j)+'.in', 'w')
             outfile.write(setup_data)
             outfile.close()
 
@@ -233,11 +234,11 @@ class Simulations():
         if self._generateChemFiles:
             self._genChemFiles(self.parameters.kcolumns)
         else:
-            print('\nChemistry files are not generated. The following file is used for all simulations: ' + chem_file)
+            print('\nChemistry files are not generated. The following file is used for all simulations: ' + self.chem_file)
             # read the example file and write it to the input folder
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file:
                 chemFiledata = file.read()
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+chem_file[:-5] +'.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+self.chem_file[:-5] +'.chem', 'w')
             outfile.write(chemFiledata)
             outfile.close()
 
@@ -248,7 +249,7 @@ class Simulations():
         #--------------------------------------Run the matlab script---------------------#
         outfile = open(self.loki_path + "\\loop_config.txt", 'w')
         outfile.write(str(self.nsimulations)) # save nsimul for matlab script
-        outfile.write("\n"+ self.outptFolder+'\\'+setup_file[:-3]+'_') # save output folder name for matlab script
+        outfile.write("\n"+ self.outptFolder+'\\'+self.setup_file[:-3]+'_') # save output folder name for matlab script
         outfile.close()
         os.chdir(self.loki_path+ "\\Code") # First change the working directory so that the relatives paths of loki work
         eng = matlab.engine.start_matlab()

@@ -32,7 +32,7 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt", nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_200.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
 
