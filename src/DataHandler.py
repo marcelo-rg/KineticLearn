@@ -48,7 +48,7 @@ class LoadDataset(torch.utils.data.Dataset):
         if react_idx == None:
             x_columns = np.arange(0,ncolumns-nspecies,1)
 
-        tmp_x = all_xy[:,x_columns]*10 # k's  #*10 to avoid being at float32 precision limit 1e-17  
+        tmp_x = all_xy[:,x_columns]*1e30 # k's  #*10 to avoid being at float32 precision limit 1e-17  
         tmp_y = all_xy[:,y_columns] # densities
 
         # Create scalers
