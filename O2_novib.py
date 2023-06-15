@@ -23,7 +23,7 @@ k_columns = [0,1,2]
 input_size = 11 # number of input densities
 output_size = 3  # number of coefficients
 hidden_size = (10,10)  # architecture of the main model
-max_epoch = 100
+max_epoch_surrg = 200
 
 # Initialize your model
 model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
@@ -31,8 +31,7 @@ model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 # Load surrogate datasets
 datasets = [LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", nspecies=n_param, react_idx=k_columns) for i in range(n_surrog)]
 
-print(datasets[0].x_data)
-exit()
+
 
 # Load main net dataset
 main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
@@ -52,7 +51,7 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 
 start = time.time()
 # Train surrogate models
-training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
+training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
 
 # Load surrogate models
 # trainer.load_surrogate_models()
@@ -63,12 +62,12 @@ training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 100, pretrain=False)
+# training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 100, pretrain=False)
 
 end = time.time()
 print("Training time: ", end - start)
 
-exit()
+
 
 # -------------------   Evaluation   ------------------- #
 
@@ -78,8 +77,8 @@ if device.type == 'cuda':
 
 # Plot training and validation loss histories
 plotter = PlottingTools()
-# plotter.plot_loss_history(training_losses, validation_losses)
-plotter.plot_loss_history(training_losses_main, validation_losses_main)
+plotter.plot_loss_history(training_losses, validation_losses)
+# plotter.plot_loss_history(training_losses_main, validation_losses_main)
 
 # Get main net
 main_net = model.main_net
@@ -89,14 +88,14 @@ for i in range(n_surrog):
     surrogate_model = model.surrog_nets[i]
     
     # Load test dataset
-    test_dataset = LoadDataset(src_file=f"data/datapoints_pressure_{i}_test.txt", nspecies=3, react_idx=k_columns,\
-                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output)
+    test_dataset = LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", nspecies=n_param, react_idx=k_columns,\
+                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output) # add _test to file name
     
     # Plot validation
     plotter.plot_predictions_surrog(surrogate_model, test_dataset, filename=f"predictions_vs_true_values_{i}.png")
 
 
-
+exit()
 # Plot validation of main net
 main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
                             scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)

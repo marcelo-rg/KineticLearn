@@ -76,7 +76,11 @@ class PlottingTools:
                 ax.set_title(f'True Values vs Predictions for {species[i]}')
 
                 # Calculate relative error
-                rel_err = np.abs(np.subtract(true_values[idx,:,i], prediction[:, i]) / true_values[idx,:,i])
+                denominator = true_values[idx,:,i]
+                denominator[np.abs(denominator) < 1e-9] = 1e-9  # Set small values to a small constant
+
+                rel_err = np.abs(np.subtract(true_values[idx,:,i], prediction[:, i]) / denominator)
+
 
                 textstr = '\n'.join((
                     r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean() * 100,),
@@ -150,17 +154,30 @@ class PlottingTools:
 
         # Plot for each species
         species = ['O2(X)','O2(a)','O(3P)']
-        fig, axs = plt.subplots(1, 3, figsize=(15,5))
-        for i, ax in enumerate(axs):
-            ax.scatter(true_values[:, i], predictions[:, i])
-            ax.set_xlabel('True Values')
-            ax.set_ylabel('Predictions')
+        # List of species
+        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
+
+        # Create 3x4 grid of subplots (it will have 2 empty subplots)
+        fig, axs = plt.subplots(4, 3, figsize=(15,20))
+
+        # Flatten the axis array to make iterating over it easier
+        axs = axs.flatten()
+
+        # Plot for each species
+        for i in range(len(species)):
+            axs[i].scatter(true_values[:, i], predictions[:, i])
+            axs[i].set_xlabel('True Values')
+            axs[i].set_ylabel('Predictions')
             # Add a diagonal line representing perfect agreement
-            ax.plot([0, 1], [0, 1], linestyle='--', color='k')
-            ax.set_title(f'True Values vs Predictions for {species[i]}')
+            axs[i].plot([0, 1], [0, 1], linestyle='--', color='k')
+            axs[i].set_title(f'True Values vs Predictions for {species[i]}')
+
 
             # Calculate relative error
-            rel_err = np.abs(np.subtract(true_values[:, i], predictions[:, i])/true_values[:, i])
+            denominator = true_values[:,i]
+            denominator[np.abs(denominator) < 1e-9] = 1e-9  # Set small values to a small constant
+            rel_err = np.abs(np.subtract(true_values[:,i], predictions[:, i]) / denominator)
+
 
             textstr = '\n'.join((
             r'$Mean\ \epsilon_{rel}=%.2f$%%' % (rel_err.mean()*100, ),
@@ -168,14 +185,18 @@ class PlottingTools:
 
             # colour point o max error
             max_index = np.argmax(rel_err)
-            ax.scatter(true_values[max_index,i],predictions[max_index,i] , color="gold", zorder= 2)
+            axs[i].scatter(true_values[max_index,i],predictions[max_index,i] , color="gold", zorder= 2)
 
             # these are matplotlib.patch.Patch properties
             props = dict(boxstyle='round', alpha=0.5) #, facecolor='none', edgecolor='none')
 
             # place a text box in upper left in axes coords
-            ax.text(0.63, 0.25, textstr, fontsize=10,  transform=ax.transAxes,
+            axs[i].text(0.63, 0.25, textstr, fontsize=10,  transform=axs[i].transAxes,
                 verticalalignment='top', bbox=props)
+
+        # Remove the extra subplots
+        for i in range(len(species), len(axs)):
+            fig.delaxes(axs[i])
 
         plt.tight_layout()
         plt.savefig('images/' + filename)
@@ -210,17 +231,13 @@ class PlottingTools:
 
 
 if __name__ == "__main__":
-    # array of shape (2,5,3)
-    array1 = np.array([[[1,2,3],[4,5,6],[7,8,9],[10,11,12],[13,14,15]], [[16,17,18],[19,20,21],[22,23,24],[25,26,27],[28,29,30]]])
-    print(array1.shape)
-    array1 = array1.reshape(-1,6)
-    print(array1.shape)
-    print(array1)
-
-    # array of shape (5,2,3)
-    array2 = np.array([[[1,2,3],[4,5,6]], [[7,8,9],[10,11,12]], [[13,14,15],[16,17,18]], [[19,20,21],[22,23,24]], [[25,26,27],[28,29,30]]]) 
-    print(array2.shape)
-    array2 = torch.Tensor(array2).flatten(start_dim=1)
-    array2 = array2.numpy()
-    print(array2.shape)
-    print(array2)
+    def readFile(file_address):
+        with open(file_address, 'r') as file :
+            densities=[]
+            for line in file:
+                if line.startswith(' '):
+                    densities.append(line.split()[0])
+        return densities
+    
+    densities = readFile('C:\\Users\\clock\\Desktop\\LoKI_v3.1.0\\Code\\Output\\oxygen_novib_0\\chemFinalDensities.txt')
+    print(densities)
