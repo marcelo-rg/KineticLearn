@@ -316,7 +316,7 @@ if __name__ == '__main__':
     k_columns = [0,1,2] 
     k_true_values = [7.6e-22, 3E-44, 4e-20] # WARNING: the order of the k's is too low to input into the scaler 
     pressures = [666.66] 
-    n_simulations = 4
+    n_simulations = 200
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
