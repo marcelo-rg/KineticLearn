@@ -141,7 +141,7 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
         if react_idx is None:
             x_columns = np.arange(0, ncolumns - nspecies, 1)
 
-        x_data = all_data[:, x_columns] * 10  # k's  # *10 to avoid being at float32 precision limit 1e-17
+        x_data = all_data[:, x_columns] * 1e30  # k's  # *10 to avoid being at float32 precision limit 1e-17
         y_data = all_data[:, y_columns]  # densities
 
         # Reshape data for multiple pressure conditions

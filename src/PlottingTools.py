@@ -46,6 +46,7 @@ class PlottingTools:
         test_data = test_dataset.x_data.to("cpu")
         test_targets = test_dataset.y_data.to("cpu")
 
+
         with torch.no_grad():  # Disable gradient calculation
             # original_data is of shape [n_conditions, batch_size, n_features]
             transposed_data = test_targets.transpose(0, 1)  # Now it's [batch_size, n_conditions, n_features]
@@ -61,19 +62,22 @@ class PlottingTools:
         true_values = test_targets.numpy()
 
         species = ['O2(X)', 'O2(a)', 'O(3P)']
-        fig, axs = plt.subplots(len(predictions_densities), 3, figsize=(15, 7))
-        axs = np.atleast_2d(axs) # Make sure axs is 2D
+        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
+        fig, axs = plt.subplots(len(predictions_densities)*3, len(species)//2, figsize=(20,15))
+        axs = axs.flatten()
         colors = ['b', 'g', 'c', 'm', 'y', 'k', 'w']
+        # For each surrogate model
         # For each surrogate model
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
-            for i, ax in enumerate(axs[idx]): # if len(predictions_densities) = 1, Error: axs[idx] is not iterable
+            for i in range(len(species)):  # changed the loop to iterate over range of species length
+                ax = axs[i + len(species)*idx]  # get corresponding ax from the flattened array
                 ax.scatter(true_values[idx,:,i], prediction[:, i], color= colors[idx])
                 ax.set_xlabel('True Values')
                 ax.set_ylabel('Predictions')
                 # Add a diagonal line representing perfect agreement
                 ax.plot([0, 1], [0, 1], linestyle='--', color='k')
-                ax.set_title(f'True Values vs Predictions for {species[i]}')
+                ax.set_title(f'{species[i]}')
 
                 # Calculate relative error
                 denominator = true_values[idx,:,i]
