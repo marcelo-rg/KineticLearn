@@ -255,7 +255,7 @@ class Simulations():
         eng = matlab.engine.start_matlab()
         s = eng.genpath(self.loki_path)
         eng.addpath(s, nargout=0) # add loki code folder to search path of matlab
-        eng.loki_loop(nargout=0)  # run the matlab script
+        eng.loki_loop_parallel(nargout=0)  # run the matlab script
 
 
 

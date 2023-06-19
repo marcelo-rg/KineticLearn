@@ -1,5 +1,5 @@
 from genFiles_O2_novib import Simulations
-import genFiles_O2_novib
+# import genFiles_O2_novib
 
 if __name__ == "__main__":
     # path to LoKI
@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     k_columns = [0,1,2] # if None, changes all columns
     pressures = [133.332, 1333.32] # P0, P1, P2, ... (in Pa)
-    n_points = 200
+    n_points = 5
     k_true_values = [7.6e-22, 3E-44, 4e-20] # WARNING: the order of the k's is 
 
     simul = Simulations(setup_file, chem_file, loki_path, n_points)
@@ -19,6 +19,7 @@ if __name__ == "__main__":
     simul.random_kset(k_columns, k_true_values, krange= [0.5,2])
     simul.fixed_pressure_set(pressures)
 
+    print(simul.nsimulations)
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_O2_novib_mainNet.txt')
+    # simul.writeDataFile(filename='datapoints_O2_novib_mainNet.txt')
