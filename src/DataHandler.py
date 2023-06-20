@@ -179,7 +179,6 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
 
 if __name__ == "__main__":
     k_idx = [0,1,2]
-    main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet.txt", nspecies=3, 
-                                            num_pressure_conditions=2, react_idx=k_idx)
-    (densities , coef) = main_dataset
-    print(main_dataset[0,:]) # [train example 0, densities]
+    main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=11, num_pressure_conditions=2, react_idx=k_idx)
+    print(main_dataset.y_data)
+    # print(main_dataset[0,:]) # [train example 0, densities]

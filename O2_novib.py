@@ -37,6 +37,8 @@ datasets = [LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", n
 main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
+print(main_dataset.y_data)
+exit()
 
 # Specify loss function
 criterion = MSELoss()
@@ -63,7 +65,7 @@ trainer.load_surrogate_models()
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.01)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 500, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=False)
 
 end = time.time()
 print("Training time: ", end - start)
@@ -98,6 +100,6 @@ for i in range(n_surrog):
 
 # Plot validation of main net
 main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output)
+                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output) # add _test to file name
 
 plotter.plot_predictions_main(model, main_dataset, filename="predictions_vs_true_values_main.png") # change to main_dataset_test
