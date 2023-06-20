@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10)  # architecture of the main model
+hidden_size = (40,)  # architecture of the main model
 max_epoch = 200
 
 # Initialize your model

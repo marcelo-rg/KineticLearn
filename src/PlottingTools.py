@@ -62,7 +62,7 @@ class PlottingTools:
         true_values = test_targets.numpy()
 
         species = ['O2(X)', 'O2(a)', 'O(3P)']
-        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
+        # species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
         fig, axs = plt.subplots(len(predictions_densities)*3, len(species)//2, figsize=(20,15))
         axs = axs.flatten()
         colors = ['b', 'g', 'c', 'm', 'y', 'k', 'w']
@@ -159,7 +159,7 @@ class PlottingTools:
         # Plot for each species
         species = ['O2(X)','O2(a)','O(3P)']
         # List of species
-        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
+        # species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
 
         # Create 3x4 grid of subplots (it will have 2 empty subplots)
         fig, axs = plt.subplots(4, 3, figsize=(15,20))

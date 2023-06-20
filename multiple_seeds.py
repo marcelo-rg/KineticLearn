@@ -1,7 +1,6 @@
 import torch
 from torch.nn import MSELoss
 from torch.optim import Adam
-import time
 
 from src.Model import NSurrogatesModel
 from src.Trainer import NSurrogatesModelTrainer
@@ -28,14 +27,13 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10)  # architecture of the main model
+# hidden_size = (10,10)  # architecture of the main model
 max_epoch = 200
 
 # Initialize your model
 plotter = PlottingTools()
 
-# Initialize your model
-model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
+# --------------------   Data   -------------------- #
 
 # Load surrogate datasets
 datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt",nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
@@ -49,71 +47,60 @@ main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_t
 # Specify loss function
 criterion = MSELoss()
 
-# Specify optimizer with parameters for main net (surrogate models are frozen)
-optimizer = Adam(model.main_net.parameters(), lr=0.1)
-
-# --------------------   Training   -------------------- #
-
-# Create trainer
-trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
-
-# Load surrogate models
-trainer.load_surrogate_models()
-
 # gen list of random seeds
-seeds = [i for i in range(100)]
-loss_list = []
-rel_error_list = []
+seeds = [i for i in range(50)]
 
-for idx, seed in enumerate(seeds):
-    main_net = trainer.model.main_net
-    torch.manual_seed(seed)
-
-    # reset model
-    main_net.reset_parameters()
-
-    # Train main net
-    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
-
-    # Save info
-    loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
-    rel_error_list.append(plotter.get_relative_error(main_net,main_dataset_test))
-
-    # Save model parameters
-    main_net.save_model(f"seeds_checkpoints/main_model_seed{idx}.pth")
-
-# write info to file
-with open('checkpoints/seeds_checkpoints/log_table.txt', 'w') as f:
-    f.write('Training loss, Validation loss, Relative error\n')
-    for i in range(len(seeds)):
-        f.write(f'{loss_list[i][0]},{loss_list[i][1]},{rel_error_list[i]}\n')
-
-exit()
-# -------------------   Evaluation   ------------------- #
-
-# Move model to cpu
-if device.type == 'cuda':  
-    model = model.to('cpu')
+# --------------------   Model   -------------------- #
+# List of hidden sizes for different architectures
+hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
+                (10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
+                (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
 
-# Get main net
-main_net = model.main_net
+for hidden_size in hidden_sizes:
+    # Directory for the current architecture
+    current_arch_dir = f'checkpoints/{hidden_size}_checkpoints'
+    if not os.path.exists(current_arch_dir):
+        os.makedirs(current_arch_dir)
 
-# Loop through surrogate models
-for i in range(n_surrog):
-    surrogate_model = model.surrog_nets[i]
-    
-    # Load test dataset
-    test_dataset = LoadDataset(src_file=f"data/datapoints_pressure_{i}_test.txt", nspecies=3, react_idx=k_columns,\
-                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output)
-    
-    # Plot validation
-    plotter.plot_predictions_surrog(surrogate_model, test_dataset, filename=f"predictions_vs_true_values_{i}.png")
+    # Initialize model
+    model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
 
+    # Specify optimizer with parameters for main net (surrogate models are frozen)
+    optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
+    # --------------------   Training   -------------------- #
 
-# Plot validation of main net
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)
+    # Create trainer
+    trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 
-plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png")
+    # Load surrogate models
+    trainer.load_surrogate_models()
+
+    loss_list = []
+    rel_error_list = []
+
+    for idx, seed in enumerate(seeds):
+        main_net = trainer.model.main_net
+        torch.manual_seed(seed)
+
+        # reset model
+        main_net.reset_parameters()
+
+        # Train main net
+        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+
+        # Save info
+        loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
+        rel_error_list.append(plotter.get_relative_error(main_net,main_dataset_test))
+
+        # Save model parameters
+        main_net.save_model(f'{hidden_size}_checkpoints/main_model_seed{idx}.pth')
+
+    # write info to file
+    with open(f'{hidden_size}_checkpoints/log_table.txt', 'w') as f:
+        for i in range(len(seeds)):
+            # Convert elements of rel_error_list[i] into strings and join them with comma
+            rel_error_str = ','.join([str(elem) for elem in rel_error_list[i]])
+            f.write(f'{loss_list[i][0]},{loss_list[i][1]},{rel_error_str}\n')
+
