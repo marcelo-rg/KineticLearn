@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 11 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10)  # architecture of the main model
+hidden_size = (15,15)  # architecture of the main model
 max_epoch_surrg = 200
 
 # Initialize your model
@@ -36,9 +36,6 @@ datasets = [LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", n
 # Load main net dataset
 main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
-
-print(main_dataset.y_data)
-exit()
 
 # Specify loss function
 criterion = MSELoss()
@@ -65,7 +62,7 @@ trainer.load_surrogate_models()
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.01)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=False)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 220, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
