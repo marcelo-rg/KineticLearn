@@ -98,7 +98,7 @@ for hidden_size in hidden_sizes:
         main_net.save_model(f'{hidden_size}_checkpoints/main_model_seed{idx}.pth')
 
     # write info to file
-    with open(f'{hidden_size}_checkpoints/log_table.txt', 'w') as f:
+    with open(f'checkpoints/{hidden_size}_checkpoints/log_table.txt', 'w') as f:
         for i in range(len(seeds)):
             # Convert elements of rel_error_list[i] into strings and join them with comma
             rel_error_str = ','.join([str(elem) for elem in rel_error_list[i]])
