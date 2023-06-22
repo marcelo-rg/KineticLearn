@@ -57,9 +57,9 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
 # hidden_sizes = [(10, 10)]
+start_position = hidden_sizes.index((50, 50))
 
-
-for hidden_size in hidden_sizes:
+for hidden_size in hidden_sizes[start_position:]:
     # Directory for the current architecture
     current_arch_dir = f'checkpoints/{hidden_size}_checkpoints'
     if not os.path.exists(current_arch_dir):
