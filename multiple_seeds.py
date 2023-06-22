@@ -56,6 +56,8 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
+# hidden_sizes = [(10, 10)]
+
 
 for hidden_size in hidden_sizes:
     # Directory for the current architecture
@@ -63,29 +65,30 @@ for hidden_size in hidden_sizes:
     if not os.path.exists(current_arch_dir):
         os.makedirs(current_arch_dir)
 
-    # Initialize model
-    model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
-
-    # Specify optimizer with parameters for main net (surrogate models are frozen)
-    optimizer = Adam(model.main_net.parameters(), lr=0.1)
-
-    # --------------------   Training   -------------------- #
-
-    # Create trainer
-    trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
-
-    # Load surrogate models
-    trainer.load_surrogate_models()
-
     loss_list = []
     rel_error_list = []
 
     for idx, seed in enumerate(seeds):
-        main_net = trainer.model.main_net
         torch.manual_seed(seed)
 
+        # Initialize model
+        model = NSurrogatesModel(input_size, output_size, hidden_size, n_surrog)
+
+        # Specify optimizer with parameters for main net (surrogate models are frozen)
+        optimizer = Adam(model.main_net.parameters(), lr=0.1)
+
+        # --------------------   Training   -------------------- #
+
+        # Create trainer
+        trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
+
+        # Load surrogate models
+        trainer.load_surrogate_models()
+
+        main_net = trainer.model.main_net
+
         # reset model
-        main_net.reset_parameters()
+        # main_net.reset_parameters()
 
         # Train main net
         training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
