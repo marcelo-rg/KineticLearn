@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 11 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (15,15)  # architecture of the main model
+hidden_size = (10,10)  # architecture of the main model
 max_epoch_surrg = 200
 
 # Initialize your model
@@ -62,7 +62,7 @@ trainer.load_surrogate_models()
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.01)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 220, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
@@ -96,7 +96,6 @@ for i in range(n_surrog):
 
 
 # Plot validation of main net
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output) # add _test to file name
-
-plotter.plot_predictions_main(model, main_dataset, filename="predictions_vs_true_values_main.png") # change to main_dataset_test
+main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_test.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
+                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output)
+plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png") 
