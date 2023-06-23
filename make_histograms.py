@@ -6,6 +6,8 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
+hidden_sizes = [(10, 10)]
+
 # Loop over each hidden size
 for hid_size in hidden_sizes:
     # Directory for the current architecture
@@ -26,7 +28,7 @@ for hid_size in hidden_sizes:
     plt.xlabel('Validation Loss')
     plt.ylabel('Frequency')
     plt.grid(True)
-    plt.text(0.6, 0.7, f'Mean: {mean_val_loss:.2f}\nStd: {std_val_loss:.2f}', 
+    plt.text(0.6, 0.7, f'Mean: {mean_val_loss:.5f}\nStd: {std_val_loss:.5f}', 
              transform=plt.gca().transAxes)
 
     # Save the histogram

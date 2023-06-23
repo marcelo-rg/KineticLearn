@@ -11,6 +11,7 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
 mean_val_loss = []
 std_val_loss = []
 
+
 # Loop over each hidden size
 for hid_size in hidden_sizes:
     # Directory for the current architecture

@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 11 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10)  # architecture of the main model
+hidden_size = (10,10,)  # architecture of the main model
 max_epoch_surrg = 200
 
 # Initialize your model
@@ -56,13 +56,16 @@ start = time.time()
 # Load surrogate models
 trainer.load_surrogate_models()
 
-# trainer.freeze_surrogate_models()
+trainer.freeze_surrogate_models()
 
 # set new learning rate for main net
-trainer.optimizer = Adam(model.main_net.parameters(), lr=0.01)
+# trainer.optimizer = Adam(model.main_net.parameters(), lr=0.05)
+
+torch.manual_seed(49)
+trainer.model.main_net.reset_parameters()
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 250, lr_rate=0.05, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
@@ -88,8 +91,8 @@ for i in range(n_surrog):
     surrogate_model = model.surrog_nets[i]
     
     # Load test dataset
-    test_dataset = LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", nspecies=n_param, react_idx=k_columns,\
-                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output) # add _test to file name
+    test_dataset = LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}_test.txt", nspecies=n_param, react_idx=k_columns,\
+                                scaler_input=datasets[i].scaler_input, scaler_output=datasets[i].scaler_output) 
     
     # Plot validation
     plotter.plot_predictions_surrog(surrogate_model, test_dataset, filename=f"predictions_vs_true_values_{i}.png")

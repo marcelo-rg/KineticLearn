@@ -48,7 +48,7 @@ main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_t
 criterion = MSELoss()
 
 # gen list of random seeds
-seeds = [i for i in range(50)]
+seeds = [i for i in range(25)]
 
 # --------------------   Model   -------------------- #
 # List of hidden sizes for different architectures
@@ -57,9 +57,9 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
 # hidden_sizes = [(10, 10)]
-start_position = hidden_sizes.index((50, 50))
+# start_position = hidden_sizes.index((50, 50))
 
-for hidden_size in hidden_sizes[start_position:]:
+for hidden_size in hidden_sizes:
     # Directory for the current architecture
     current_arch_dir = f'checkpoints/{hidden_size}_checkpoints'
     if not os.path.exists(current_arch_dir):
@@ -91,7 +91,7 @@ for hidden_size in hidden_sizes[start_position:]:
         # main_net.reset_parameters()
 
         # Train main net
-        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200,lr_rate=0.05, pretrain=True)
 
         # Save info
         loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])

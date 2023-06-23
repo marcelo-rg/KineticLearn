@@ -134,7 +134,7 @@ class NSurrogatesModelTrainer:
 
     
 
-    def train_main_model(self, main_dataset, epochs, pretrain=False):
+    def train_main_model(self, main_dataset, epochs, lr_rate ,pretrain=False):
         """
         Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.
 
@@ -159,16 +159,17 @@ class NSurrogatesModelTrainer:
         train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
 
         # Create dataloaders
-        train_dataloader = DataLoader(train_dataset, batch_size=100, shuffle=False)
-        val_dataloader = DataLoader(val_dataset, batch_size=100, shuffle=False)
+        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
+        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
 
 
         main_model = self.model.main_net
 
         if pretrain:
+            self.set_leaning_rate(0.01)
             loss_func = MSELoss()
             main_model.train()
-            for epoch in range(epochs):
+            for epoch in range(200):
                 epoch_loss = 0.0
                 for x_batch,y_batch in train_dataloader:
                     output = main_model(y_batch.flatten(start_dim=1))
@@ -215,7 +216,7 @@ class NSurrogatesModelTrainer:
         training_losses = {'main_model': []}
         validation_losses = {'main_model': []}
 
-    
+        self.set_leaning_rate(lr_rate)
         for epoch in range(epochs):
 
             # Training phase
@@ -353,3 +354,12 @@ class NSurrogatesModelTrainer:
         for i, surrog_net in enumerate(self.model.surrog_nets):
             if (surrog_net.load_model(f"surrogate_model_{i}.pth")):
                 print("loading surrogate model ", i, "...")
+
+    def set_leaning_rate(self, new_lr):
+        """
+        Set the learning rate of the optimizer to a new value.
+
+        Args:
+            new_lr (float): The new learning rate.
+        """
+        self.optimizer.param_groups[0]['lr'] = new_lr

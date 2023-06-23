@@ -38,6 +38,10 @@ main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainN
 main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_test.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
                             scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output)
 
+# make dir if it doesn't exist
+import os
+if not os.path.exists(f'checkpoints/{hidden_size}_checkpoints'):
+    os.makedirs(f'checkpoints/{hidden_size}_checkpoints')
 
 
 # Initialize plotter
@@ -75,7 +79,7 @@ for idx, seed in enumerate(seeds):
     main_net.reset_parameters()
 
     # Train main net
-    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+    training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 250, lr_rate=0.05, pretrain=True)
 
     # Save info
     loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
@@ -83,6 +87,7 @@ for idx, seed in enumerate(seeds):
 
     # Save model parameters
     main_net.save_model(f'{hidden_size}_checkpoints/main_model_seed{idx}.pth')
+
 
 # write info to file
 with open(f'checkpoints/{hidden_size}_checkpoints/log_table.txt', 'w') as f:
