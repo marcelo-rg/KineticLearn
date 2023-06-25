@@ -6,7 +6,7 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
-hidden_sizes = [(10, 10)]
+# hidden_sizes = [(10, 10)]
 
 # Loop over each hidden size
 for hid_size in hidden_sizes:

@@ -50,10 +50,10 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 
 start = time.time()
 # Train surrogate models
-# training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
+training_losses, validation_losses = trainer.train_surrg_models(max_epoch)
 
 # Load surrogate models
-trainer.load_surrogate_models()
+trainer.save_surrogate_models()
 
 # trainer.freeze_surrogate_models()
 
@@ -61,7 +61,7 @@ trainer.load_surrogate_models()
 trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True, lr_rate=0.05)
 
 end = time.time()
 print("Training time: ", end - start)

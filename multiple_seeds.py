@@ -91,7 +91,7 @@ for hidden_size in hidden_sizes:
         # main_net.reset_parameters()
 
         # Train main net
-        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200,lr_rate=0.05, pretrain=True)
+        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200,lr_rate=0.05, pretrain=False)
 
         # Save info
         loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])

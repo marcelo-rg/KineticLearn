@@ -37,6 +37,8 @@ plt.ylabel('Mean Validation Loss')
 plt.grid(True)
 plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
 
+plt.yscale('log')  # Use log scale for y-axis
+
 plt.tight_layout()
 
 # Save the plot
