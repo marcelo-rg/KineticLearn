@@ -22,7 +22,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 11 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10,)  # architecture of the main model
+hidden_size = (20,20,)  # architecture of the main model
 max_epoch_surrg = 200
 
 # Initialize your model
@@ -50,7 +50,6 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer)
 start = time.time()
 # Train surrogate models
 # training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
-# Save surrogate models
 # trainer.save_surrogate_models()
 
 # Load surrogate models
@@ -65,7 +64,7 @@ torch.manual_seed(49)
 trainer.model.main_net.reset_parameters()
 
 # Train main net
-training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 250, lr_rate=0.05, pretrain=True)
+training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 250, lr_rate=0.1, pretrain=True)
 
 end = time.time()
 print("Training time: ", end - start)
