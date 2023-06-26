@@ -70,7 +70,9 @@
              
   <h1>Source code for Trainer</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="n">MSELoss</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">random_split</span><span class="p">,</span> <span class="n">DataLoader</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <div class="viewcode-block" id="NSurrogatesModelTrainer"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer">[docs]</a><span class="k">class</span> <span class="nc">NSurrogatesModelTrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -100,10 +102,9 @@
 <span class="sd">        val_split (float, optional): The proportion of the dataset to include in the validation split. Default is 0.1.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">main_criterion</span><span class="p">,</span> <span class="n">surrog_criterion</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">val_split</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">surrog_criterion</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">val_split</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">main_criterion</span> <span class="o">=</span> <span class="n">main_criterion</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">surrog_criterion</span> <span class="o">=</span> <span class="n">surrog_criterion</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
@@ -127,6 +128,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloaders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">train_dataloader</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">val_dataloaders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val_dataloader</span><span class="p">)</span>
     
+
+    
     
 <div class="viewcode-block" id="NSurrogatesModelTrainer.train_surrg_models"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.train_surrg_models">[docs]</a>    <span class="k">def</span> <span class="nf">train_surrg_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epochs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -149,7 +152,6 @@
         <span class="n">training_losses</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s1">&#39;surrogate_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">n_surrog</span><span class="p">)}</span>
         <span class="n">validation_losses</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s1">&#39;surrogate_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">n_surrog</span><span class="p">)}</span>
         <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
-            <span class="c1"># epoch_loss = 0.0</span>
 
             <span class="c1"># Training phase</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">surrog_net</span><span class="p">,</span> <span class="n">train_dataloader</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_dataloaders</span><span class="p">)):</span>
@@ -203,6 +205,169 @@
 
     
 
+<div class="viewcode-block" id="NSurrogatesModelTrainer.train_main_model"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.train_main_model">[docs]</a>    <span class="k">def</span> <span class="nf">train_main_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_dataset</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">lr_rate</span> <span class="p">,</span><span class="n">pretrain</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.</span>
+
+<span class="sd">        Each epoch consists of a training phase and a validation phase. In the training phase, the main model is updated</span>
+<span class="sd">        to reduce the loss on the training data. In the validation phase, the loss on the validation data is calculated,</span>
+<span class="sd">        but the model is not updated. The training and validation losses for each epoch are printed out and stored in</span>
+<span class="sd">        dictionaries that are returned by this method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            main_dataset (LoadDataset): The main dataset containing input (densities) and target (coefficients) data.</span>
+<span class="sd">            epochs (int): The number of epochs to train for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: A dictionary mapping the main model to a list of its training losses over all epochs.</span>
+<span class="sd">            dict: A dictionary mapping the main model to a list of its validation losses over all epochs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Calculate split sizes</span>
+        <span class="n">train_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_split</span><span class="p">)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">main_dataset</span><span class="p">))</span>
+        <span class="n">val_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">main_dataset</span><span class="p">)</span> <span class="o">-</span> <span class="n">train_size</span>
+
+        <span class="c1"># Split the dataset</span>
+        <span class="n">train_dataset</span><span class="p">,</span> <span class="n">val_dataset</span> <span class="o">=</span> <span class="n">random_split</span><span class="p">(</span><span class="n">main_dataset</span><span class="p">,</span> <span class="p">[</span><span class="n">train_size</span><span class="p">,</span> <span class="n">val_size</span><span class="p">])</span>
+
+        <span class="c1"># Create dataloaders</span>
+        <span class="n">train_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">val_dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">val_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+        <span class="n">main_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">main_net</span>
+
+        <span class="k">if</span> <span class="n">pretrain</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_leaning_rate</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+            <span class="n">loss_func</span> <span class="o">=</span> <span class="n">MSELoss</span><span class="p">()</span>
+            <span class="n">main_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">200</span><span class="p">):</span>
+                <span class="n">epoch_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">for</span> <span class="n">x_batch</span><span class="p">,</span><span class="n">y_batch</span> <span class="ow">in</span> <span class="n">train_dataloader</span><span class="p">:</span>
+                    <span class="n">output</span> <span class="o">=</span> <span class="n">main_model</span><span class="p">(</span><span class="n">y_batch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">start_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_func</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">x_batch</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:])</span>
+                    <span class="n">epoch_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+                <span class="c1"># Print the training and validation losses for this epoch</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Pretrain: Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s1">, Training Loss: </span><span class="si">{</span><span class="n">epoch_loss</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+        <span class="k">def</span> <span class="nf">main_criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Calculates the main criterion loss as the sum of mean squared errors (MSE) between the surrogate outputs and targets.</span>
+
+<span class="sd">            Args:</span>
+<span class="sd">                output (torch.Tensor): The surrogate outputs of shape (batch_size, num_pressure_conditions, output_size).</span>
+<span class="sd">                target (torch.Tensor): The targets of shape (batch_size, num_pressure_conditions, output_size).</span>
+
+<span class="sd">            Returns:</span>
+<span class="sd">                torch.Tensor: The main criterion loss.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">loss_func</span> <span class="o">=</span> <span class="n">MSELoss</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">num_pressure_conditions</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">):</span>
+                <span class="n">surrogate_output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Surrogate output for the i-th pressure condition</span>
+                <span class="n">target_i</span> <span class="o">=</span> <span class="n">target</span><span class="p">[:,</span> <span class="n">i</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Target for the i-th pressure condition</span>
+                <span class="n">loss</span> <span class="o">+=</span> <span class="n">loss_func</span><span class="p">(</span><span class="n">surrogate_output</span><span class="p">,</span> <span class="n">target_i</span><span class="p">)</span>
+            
+            <span class="c1"># # try to recover training with only one pressure condition</span>
+            <span class="c1"># surrogate_output = output[:, 0, :]  # Surrogate output for the i-th pressure condition</span>
+            <span class="c1"># target_i = target[:, 0, :]  # Target for the i-th pressure condition</span>
+            <span class="c1"># loss = loss_func(surrogate_output, target_i)</span>
+
+
+            <span class="k">return</span> <span class="n">loss</span>
+
+        <span class="c1"># Initialize dictionaries to store the loss history</span>
+        <span class="n">training_losses</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;main_model&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="n">validation_losses</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;main_model&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_leaning_rate</span><span class="p">(</span><span class="n">lr_rate</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
+
+            <span class="c1"># Training phase</span>
+            <span class="n">main_model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>  <span class="c1"># Set the main model to training mode</span>
+            <span class="n">epoch_loss</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Initialize epoch loss for the main model</span>
+
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y_batch</span> <span class="ow">in</span> <span class="n">train_dataloader</span><span class="p">:</span>
+                <span class="c1"># Move data to device</span>
+                <span class="n">y_batch</span> <span class="o">=</span> <span class="n">y_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+
+                <span class="c1"># Forward pass through the main model</span>
+                <span class="n">main_input</span> <span class="o">=</span> <span class="n">y_batch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">start_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">main_output</span> <span class="o">=</span> <span class="n">main_model</span><span class="p">(</span><span class="n">main_input</span><span class="p">)</span>   
+
+                <span class="c1"># Compute loss</span>
+                <span class="n">surrogate_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">for</span> <span class="n">surrogate_net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">:</span>
+                    <span class="n">surrogate_net</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+                    <span class="c1"># Forward pass through the surrogate model</span>
+                    <span class="n">surrogate_output</span> <span class="o">=</span> <span class="n">surrogate_net</span><span class="p">(</span><span class="n">main_output</span><span class="p">)</span>
+                    <span class="n">surrogate_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surrogate_output</span><span class="p">)</span>  <span class="c1"># Set requires_grad to True</span>
+
+                <span class="c1"># Stack surrogate outputs along the second dimension</span>
+                <span class="n">surrogate_outputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">surrogate_outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">loss</span> <span class="o">=</span> <span class="n">main_criterion</span><span class="p">(</span><span class="n">surrogate_outputs</span><span class="p">,</span> <span class="n">y_batch</span><span class="p">)</span>
+
+                <span class="c1"># Accumulate loss</span>
+                <span class="n">epoch_loss</span> <span class="o">+=</span> <span class="n">loss</span>
+
+                <span class="c1"># Backward pass and optimization</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+                <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+                <span class="c1"># freeze surrogate models</span>
+                <span class="c1"># self.freeze_surrogate_models()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+            <span class="c1"># Add loss to history</span>
+            <span class="n">training_losses</span><span class="p">[</span><span class="s1">&#39;main_model&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epoch_loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+
+
+            <span class="c1"># Validation phase</span>
+            <span class="n">main_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>  <span class="c1"># Set the main model to evaluation mode</span>
+            <span class="n">epoch_val_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y_batch</span> <span class="ow">in</span> <span class="n">val_dataloader</span><span class="p">:</span>
+                    <span class="c1"># Move data to device</span>
+                    <span class="n">y_batch</span> <span class="o">=</span> <span class="n">y_batch</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+                    <span class="c1"># Forward pass through the main model</span>
+                    <span class="n">main_input</span> <span class="o">=</span> <span class="n">y_batch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">start_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">main_output</span> <span class="o">=</span> <span class="n">main_model</span><span class="p">(</span><span class="n">main_input</span><span class="p">)</span>
+
+                    <span class="c1"># Compute surrogate outputs for all surrogate models</span>
+                    <span class="n">surrogate_outputs</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">surrogate_net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">:</span>
+                        <span class="n">surrogate_net</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>  
+                        <span class="n">surrogate_output</span> <span class="o">=</span> <span class="n">surrogate_net</span><span class="p">(</span><span class="n">main_output</span><span class="p">)</span>
+                        <span class="n">surrogate_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">surrogate_output</span><span class="p">)</span>
+
+                    <span class="c1"># Stack surrogate outputs along the second dimension</span>
+                    <span class="n">surrogate_outputs</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">surrogate_outputs</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  
+
+                    <span class="c1"># Compute loss</span>
+                    <span class="n">val_loss</span> <span class="o">=</span> <span class="n">main_criterion</span><span class="p">(</span><span class="n">surrogate_outputs</span><span class="p">,</span> <span class="n">y_batch</span><span class="p">)</span>
+
+                    <span class="c1"># Accumulate loss</span>
+                    <span class="n">epoch_val_loss</span> <span class="o">+=</span> <span class="n">val_loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+            <span class="c1"># Add loss to history</span>
+            <span class="n">validation_losses</span><span class="p">[</span><span class="s1">&#39;main_model&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">epoch_val_loss</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_split</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_split</span><span class="p">)</span>
+
+            <span class="c1"># Print the training and validation losses for this epoch</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Epoch </span><span class="si">{</span><span class="n">epoch</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">epochs</span><span class="si">}</span><span class="s1">, Training Loss: </span><span class="si">{</span><span class="n">epoch_loss</span><span class="si">}</span><span class="s1">, Validation Loss: </span><span class="si">{</span><span class="n">epoch_val_loss</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">val_split</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">val_split</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">training_losses</span><span class="p">,</span> <span class="n">validation_losses</span></div>
+
 <div class="viewcode-block" id="NSurrogatesModelTrainer.freeze_surrogate_models"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.freeze_surrogate_models">[docs]</a>    <span class="k">def</span> <span class="nf">freeze_surrogate_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">surrog_net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">surrog_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
@@ -212,8 +377,6 @@
         <span class="k">for</span> <span class="n">surrog_net</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">surrog_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
                 <span class="n">param</span><span class="o">.</span><span class="n">requires_grad</span> <span class="o">=</span> <span class="kc">True</span></div>
-
-
 
 
 <div class="viewcode-block" id="NSurrogatesModelTrainer.add_surrogate_and_dataset"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.add_surrogate_and_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">add_surrogate_and_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">surrogate_params</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
@@ -238,8 +401,39 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dataloader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataloaders</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="NSurrogatesModelTrainer.save_surrogate_models"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.save_surrogate_models">[docs]</a>    <span class="k">def</span> <span class="nf">save_surrogate_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the surrogate models</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># prinr current directory</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
 
+        <span class="n">directory</span> <span class="o">=</span> <span class="s2">&quot;checkpoints&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;creating directory &quot;</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span> 
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">surrog_net</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">surrog_net</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;surrogate_model_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.pth&quot;</span><span class="p">)):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;saving surrogate model &quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NSurrogatesModelTrainer.load_surrogate_models"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.load_surrogate_models">[docs]</a>    <span class="k">def</span> <span class="nf">load_surrogate_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the surrogate models</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">surrog_net</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">surrog_nets</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">surrog_net</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;surrogate_model_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.pth&quot;</span><span class="p">)):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;loading surrogate model &quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NSurrogatesModelTrainer.set_leaning_rate"><a class="viewcode-back" href="../Trainer.html#Trainer.NSurrogatesModelTrainer.set_leaning_rate">[docs]</a>    <span class="k">def</span> <span class="nf">set_leaning_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_lr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the learning rate of the optimizer to a new value.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            new_lr (float): The new learning rate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">param_groups</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;lr&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_lr</span></div></div>
 </pre></div>
 
            </div>

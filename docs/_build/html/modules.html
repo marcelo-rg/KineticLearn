@@ -91,12 +91,24 @@
 <li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadDataset.all_data"><code class="docutils literal notranslate"><span class="pre">LoadDataset.all_data</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.scaler_input"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.scaler_input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.scaler_output"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.scaler_output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.x_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.x_data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.y_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.y_data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.all_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.all_data</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="DataHandler.html#DataHandler.LoadMultiPressureDataset.num_pressure_conditions"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.num_pressure_conditions</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="NeuralNetworkModels.html">NeuralNetworkModels module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet"><code class="docutils literal notranslate"><span class="pre">NeuralNet</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.model</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.forward"><code class="docutils literal notranslate"><span class="pre">NeuralNet.forward()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.load_model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.load_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.reset_parameters"><code class="docutils literal notranslate"><span class="pre">NeuralNet.reset_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.save_model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.save_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.training"><code class="docutils literal notranslate"><span class="pre">NeuralNet.training</span></code></a></li>
 </ul>
 </li>
@@ -104,8 +116,10 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="PlottingTools.html">PlottingTools module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools"><code class="docutils literal notranslate"><span class="pre">PlottingTools</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools.get_relative_error"><code class="docutils literal notranslate"><span class="pre">PlottingTools.get_relative_error()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools.plot_loss_history"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_loss_history()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions_main"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions_main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions_surrog"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions_surrog()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -123,28 +137,17 @@
 <li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.add_dataset"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.add_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.add_surrogate_and_dataset"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.add_surrogate_and_dataset()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.freeze_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.freeze_surrogate_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.load_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.load_surrogate_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.save_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.save_surrogate_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.set_leaning_rate"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.set_leaning_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.train_main_model"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.train_main_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.train_surrg_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.train_surrg_models()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="Trainer.html#Trainer.NSurrogatesModelTrainer.unfreeze_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.unfreeze_surrogate_models()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Model.html">Model module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Model.html#Model.NSurrogatesModel"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.main_net"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.main_net</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.n_surrog"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.n_surrog</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.surrog_nets"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.surrog_nets</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.add_surrogate"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.add_surrogate()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.forward"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.forward()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.freeze_main"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.freeze_main()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.freeze_surrogates"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.freeze_surrogates()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.training"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.training</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.unfreeze_main"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.unfreeze_main()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="Model.html#Model.NSurrogatesModel.unfreeze_surrogates"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModel.unfreeze_surrogates()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="Model.html">Model module</a></li>
 </ul>
 </div>
 </section>

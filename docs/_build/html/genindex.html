@@ -75,11 +75,13 @@
  | <a href="#B"><strong>B</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
@@ -93,14 +95,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.add_dataset">add_dataset() (Trainer.NSurrogatesModelTrainer method)</a>
 </li>
-      <li><a href="Model.html#Model.NSurrogatesModel.add_surrogate">add_surrogate() (Model.NSurrogatesModel method)</a>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.add_surrogate_and_dataset">add_surrogate_and_dataset() (Trainer.NSurrogatesModelTrainer method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.add_surrogate_and_dataset">add_surrogate_and_dataset() (Trainer.NSurrogatesModelTrainer method)</a>
-</li>
       <li><a href="DataHandler.html#DataHandler.LoadDataset.all_data">all_data (DataHandler.LoadDataset attribute)</a>
+
+      <ul>
+        <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.all_data">(DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -132,19 +136,19 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel.forward">forward() (Model.NSurrogatesModel method)</a>
-
-      <ul>
-        <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.forward">(NeuralNetworkModels.NeuralNet method)</a>
+      <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.forward">forward() (NeuralNetworkModels.NeuralNet method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel.freeze_main">freeze_main() (Model.NSurrogatesModel method)</a>
-</li>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.freeze_surrogate_models">freeze_surrogate_models() (Trainer.NSurrogatesModelTrainer method)</a>
 </li>
-      <li><a href="Model.html#Model.NSurrogatesModel.freeze_surrogates">freeze_surrogates() (Model.NSurrogatesModel method)</a>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="PlottingTools.html#PlottingTools.PlottingTools.get_relative_error">get_relative_error() (PlottingTools.PlottingTools method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -152,7 +156,15 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.load_model">load_model() (NeuralNetworkModels.NeuralNet method)</a>
+</li>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.load_surrogate_models">load_surrogate_models() (Trainer.NSurrogatesModelTrainer method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="DataHandler.html#DataHandler.LoadDataset">LoadDataset (class in DataHandler)</a>
+</li>
+      <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset">LoadMultiPressureDataset (class in DataHandler)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -162,30 +174,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.main_criterion">main_criterion (Trainer.NSurrogatesModelTrainer attribute)</a>
 </li>
-      <li><a href="Model.html#Model.NSurrogatesModel.main_net">main_net (Model.NSurrogatesModel attribute)</a>
-</li>
-      <li>
-    Model
-
-      <ul>
-        <li><a href="Model.html#module-Model">module</a>
-</li>
-      </ul></li>
       <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.model">model (NeuralNetworkModels.NeuralNet attribute)</a>
 
       <ul>
         <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.model">(Trainer.NSurrogatesModelTrainer attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
       <ul>
         <li><a href="DataHandler.html#module-DataHandler">DataHandler</a>
-</li>
-        <li><a href="Model.html#module-Model">Model</a>
 </li>
         <li><a href="NeuralNetworkModels.html#module-NeuralNetworkModels">NeuralNetworkModels</a>
 </li>
@@ -200,8 +199,6 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel.n_surrog">n_surrog (Model.NSurrogatesModel attribute)</a>
-</li>
       <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet">NeuralNet (class in NeuralNetworkModels)</a>
 </li>
       <li>
@@ -213,9 +210,9 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel">NSurrogatesModel (class in Model)</a>
-</li>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer">NSurrogatesModelTrainer (class in Trainer)</a>
+</li>
+      <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.num_pressure_conditions">num_pressure_conditions (DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -233,7 +230,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="PlottingTools.html#PlottingTools.PlottingTools.plot_loss_history">plot_loss_history() (PlottingTools.PlottingTools method)</a>
 </li>
-      <li><a href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions">plot_predictions() (PlottingTools.PlottingTools method)</a>
+      <li><a href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions_main">plot_predictions_main() (PlottingTools.PlottingTools method)</a>
+</li>
+      <li><a href="PlottingTools.html#PlottingTools.PlottingTools.plot_predictions_surrog">plot_predictions_surrog() (PlottingTools.PlottingTools method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -249,18 +248,38 @@
   </ul></td>
 </tr></table>
 
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.reset_parameters">reset_parameters() (NeuralNetworkModels.NeuralNet method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.save_model">save_model() (NeuralNetworkModels.NeuralNet method)</a>
+</li>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.save_surrogate_models">save_surrogate_models() (Trainer.NSurrogatesModelTrainer method)</a>
+</li>
       <li><a href="DataHandler.html#DataHandler.LoadDataset.scaler_input">scaler_input (DataHandler.LoadDataset attribute)</a>
+
+      <ul>
+        <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.scaler_input">(DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
-      <li><a href="DataHandler.html#DataHandler.LoadDataset.scaler_output">scaler_output (DataHandler.LoadDataset attribute)</a>
-</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.surrog_criterion">surrog_criterion (Trainer.NSurrogatesModelTrainer attribute)</a>
+      <li><a href="DataHandler.html#DataHandler.LoadDataset.scaler_output">scaler_output (DataHandler.LoadDataset attribute)</a>
+
+      <ul>
+        <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.scaler_output">(DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
-      <li><a href="Model.html#Model.NSurrogatesModel.surrog_nets">surrog_nets (Model.NSurrogatesModel attribute)</a>
+      </ul></li>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.set_leaning_rate">set_leaning_rate() (Trainer.NSurrogatesModelTrainer method)</a>
+</li>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.surrog_criterion">surrog_criterion (Trainer.NSurrogatesModelTrainer attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -270,8 +289,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.train_dataloaders">train_dataloaders (Trainer.NSurrogatesModelTrainer attribute)</a>
 </li>
+      <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.train_main_model">train_main_model() (Trainer.NSurrogatesModelTrainer method)</a>
+</li>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.train_surrg_models">train_surrg_models() (Trainer.NSurrogatesModelTrainer method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     Trainer
 
@@ -279,27 +302,15 @@
         <li><a href="Trainer.html#module-Trainer">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel.training">training (Model.NSurrogatesModel attribute)</a>
-
-      <ul>
-        <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.training">(NeuralNetworkModels.NeuralNet attribute)</a>
+      <li><a href="NeuralNetworkModels.html#NeuralNetworkModels.NeuralNet.training">training (NeuralNetworkModels.NeuralNet attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Model.html#Model.NSurrogatesModel.unfreeze_main">unfreeze_main() (Model.NSurrogatesModel method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Trainer.html#Trainer.NSurrogatesModelTrainer.unfreeze_surrogate_models">unfreeze_surrogate_models() (Trainer.NSurrogatesModelTrainer method)</a>
-</li>
-      <li><a href="Model.html#Model.NSurrogatesModel.unfreeze_surrogates">unfreeze_surrogates() (Model.NSurrogatesModel method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -316,7 +327,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="DataHandler.html#DataHandler.LoadDataset.x_data">x_data (DataHandler.LoadDataset attribute)</a>
+
+      <ul>
+        <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.x_data">(DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -324,7 +339,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="DataHandler.html#DataHandler.LoadDataset.y_data">y_data (DataHandler.LoadDataset attribute)</a>
+
+      <ul>
+        <li><a href="DataHandler.html#DataHandler.LoadMultiPressureDataset.y_data">(DataHandler.LoadMultiPressureDataset attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 

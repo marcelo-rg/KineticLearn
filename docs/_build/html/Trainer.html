@@ -61,6 +61,10 @@
 <li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.add_dataset"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.add_dataset()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.add_surrogate_and_dataset"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.add_surrogate_and_dataset()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.freeze_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.freeze_surrogate_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.load_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.load_surrogate_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.save_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.save_surrogate_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.set_leaning_rate"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.set_leaning_rate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.train_main_model"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.train_main_model()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.train_surrg_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.train_surrg_models()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#Trainer.NSurrogatesModelTrainer.unfreeze_surrogate_models"><code class="docutils literal notranslate"><span class="pre">NSurrogatesModelTrainer.unfreeze_surrogate_models()</span></code></a></li>
 </ul>
@@ -101,7 +105,7 @@
 <span id="trainer-module"></span><h1>Trainer module<a class="headerlink" href="#module-Trainer" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Trainer.</span></span><span class="sig-name descname"><span class="pre">NSurrogatesModelTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surrog_criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Trainer.</span></span><span class="sig-name descname"><span class="pre">NSurrogatesModelTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">surrog_criterion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_split</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class that represents a trainer for an NSurrogatesModel.</p>
 <p>This class is used to manage the training and validation of multiple surrogate models and a main model
@@ -112,7 +116,7 @@ for different datasets.</p>
 <dd><p>The model to train.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="Model.html#Model.NSurrogatesModel" title="Model.NSurrogatesModel">NSurrogatesModel</a></p>
+<dd class="field-odd"><p>NSurrogatesModel</p>
 </dd>
 </dl>
 </dd></dl>
@@ -197,7 +201,7 @@ for different datasets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>model</strong> (<a class="reference internal" href="Model.html#Model.NSurrogatesModel" title="Model.NSurrogatesModel"><em>NSurrogatesModel</em></a>) – The model to train.</p></li>
+<li><p><strong>model</strong> (<em>NSurrogatesModel</em>) – The model to train.</p></li>
 <li><p><strong>datasets</strong> (<em>list</em>) – List of Dataset instances for each surrogate model.</p></li>
 <li><p><strong>device</strong> (<em>str</em>) – The device to use for training (typically either “cpu” or “cuda”).</p></li>
 <li><p><strong>main_criterion</strong> (<em>nn.Module</em>) – The loss function to use for training the main model.</p></li>
@@ -239,6 +243,54 @@ and ‘activ_f’ (optional).</p></li>
 <dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.freeze_surrogate_models">
 <span class="sig-name descname"><span class="pre">freeze_surrogate_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer.freeze_surrogate_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer.freeze_surrogate_models" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.load_surrogate_models">
+<span class="sig-name descname"><span class="pre">load_surrogate_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer.load_surrogate_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer.load_surrogate_models" title="Permalink to this definition"></a></dt>
+<dd><p>Load the surrogate models</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.save_surrogate_models">
+<span class="sig-name descname"><span class="pre">save_surrogate_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer.save_surrogate_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer.save_surrogate_models" title="Permalink to this definition"></a></dt>
+<dd><p>Save the surrogate models</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.set_leaning_rate">
+<span class="sig-name descname"><span class="pre">set_leaning_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_lr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer.set_leaning_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer.set_leaning_rate" title="Permalink to this definition"></a></dt>
+<dd><p>Set the learning rate of the optimizer to a new value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_lr</strong> (<em>float</em>) – The new learning rate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.train_main_model">
+<span class="sig-name descname"><span class="pre">train_main_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">main_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Trainer.html#NSurrogatesModelTrainer.train_main_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Trainer.NSurrogatesModelTrainer.train_main_model" title="Permalink to this definition"></a></dt>
+<dd><p>Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.</p>
+<p>Each epoch consists of a training phase and a validation phase. In the training phase, the main model is updated
+to reduce the loss on the training data. In the validation phase, the loss on the validation data is calculated,
+but the model is not updated. The training and validation losses for each epoch are printed out and stored in
+dictionaries that are returned by this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_dataset</strong> (<a class="reference internal" href="DataHandler.html#DataHandler.LoadDataset" title="DataHandler.LoadDataset"><em>LoadDataset</em></a>) – The main dataset containing input (densities) and target (coefficients) data.</p></li>
+<li><p><strong>epochs</strong> (<em>int</em>) – The number of epochs to train for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary mapping the main model to a list of its training losses over all epochs.
+dict: A dictionary mapping the main model to a list of its validation losses over all epochs.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="Trainer.NSurrogatesModelTrainer.train_surrg_models">

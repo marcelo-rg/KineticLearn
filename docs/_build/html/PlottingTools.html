@@ -49,8 +49,10 @@
 <li class="toctree-l2"><a class="reference internal" href="NeuralNetworkModels.html">NeuralNetworkModels module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">PlottingTools module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#PlottingTools.PlottingTools"><code class="docutils literal notranslate"><span class="pre">PlottingTools</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#PlottingTools.PlottingTools.get_relative_error"><code class="docutils literal notranslate"><span class="pre">PlottingTools.get_relative_error()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#PlottingTools.PlottingTools.plot_loss_history"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_loss_history()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#PlottingTools.PlottingTools.plot_predictions"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#PlottingTools.PlottingTools.plot_predictions_main"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions_main()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#PlottingTools.PlottingTools.plot_predictions_surrog"><code class="docutils literal notranslate"><span class="pre">PlottingTools.plot_predictions_surrog()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -93,13 +95,23 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">PlottingTools.</span></span><span class="sig-name descname"><span class="pre">PlottingTools</span></span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
+<dt class="sig sig-object py" id="PlottingTools.PlottingTools.get_relative_error">
+<span class="sig-name descname"><span class="pre">get_relative_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">neural_net</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools.get_relative_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools.get_relative_error" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="PlottingTools.PlottingTools.plot_loss_history">
 <span class="sig-name descname"><span class="pre">plot_loss_history</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">training_losses</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_losses</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools.plot_loss_history"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools.plot_loss_history" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="PlottingTools.PlottingTools.plot_predictions">
-<span class="sig-name descname"><span class="pre">plot_predictions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools.plot_predictions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools.plot_predictions" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="PlottingTools.PlottingTools.plot_predictions_main">
+<span class="sig-name descname"><span class="pre">plot_predictions_main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'predictions_vs_true_values.png'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools.plot_predictions_main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools.plot_predictions_main" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="PlottingTools.PlottingTools.plot_predictions_surrog">
+<span class="sig-name descname"><span class="pre">plot_predictions_surrog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'predictions_vs_true_values_mainModel.png'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PlottingTools.html#PlottingTools.plot_predictions_surrog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#PlottingTools.PlottingTools.plot_predictions_surrog" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

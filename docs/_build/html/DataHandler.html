@@ -54,6 +54,15 @@
 <li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadDataset.all_data"><code class="docutils literal notranslate"><span class="pre">LoadDataset.all_data</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.scaler_input"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.scaler_input</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.scaler_output"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.scaler_output</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.x_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.x_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.y_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.y_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.all_data"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.all_data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#DataHandler.LoadMultiPressureDataset.num_pressure_conditions"><code class="docutils literal notranslate"><span class="pre">LoadMultiPressureDataset.num_pressure_conditions</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="NeuralNetworkModels.html">NeuralNetworkModels module</a></li>
@@ -165,6 +174,98 @@ If None, a new scaler is created. Default is None.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">DataHandler.</span></span><span class="sig-name descname"><span class="pre">LoadMultiPressureDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nspecies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_pressure_conditions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">react_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_input</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/DataHandler.html#LoadMultiPressureDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<p>A custom dataset class for loading and preprocessing data with multiple pressure conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_file</strong> (<em>str</em>) – The path to the source file containing the data.</p></li>
+<li><p><strong>nspecies</strong> (<em>int</em>) – The number of species.</p></li>
+<li><p><strong>react_idx</strong> (<em>list</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The indices of the columns representing the output (k’s).
+If None, the first 9 columns are considered as output. Default is None.</p></li>
+<li><p><strong>m_rows</strong> (<em>int</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The maximum number of rows to load from the source file.
+Default is None, which loads all rows.</p></li>
+<li><p><strong>columns</strong> (<em>list</em><em> or </em><em>None</em><em>, </em><em>optional</em>) – The indices of the columns to load from the source file.
+Default is None, which loads all columns.</p></li>
+<li><p><strong>scaler_input</strong> (<em>sklearn.preprocessing.MaxAbsScaler</em><em>, </em><em>optional</em>) – The MaxAbsScaler used for scaling the input (densities and pressure).
+If None, a new scaler is created. Default is None.</p></li>
+<li><p><strong>scaler_output</strong> (<em>sklearn.preprocessing.MaxAbsScaler</em><em>, </em><em>optional</em>) – The MaxAbsScaler used for scaling the output (k’s).
+If None, a new scaler is created. Default is None.</p></li>
+<li><p><strong>num_pressure_conditions</strong> (<em>int</em>) – The number of pressure conditions in the data file.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.scaler_input">
+<span class="sig-name descname"><span class="pre">scaler_input</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.scaler_input" title="Permalink to this definition"></a></dt>
+<dd><p>The MaxAbsScaler used for scaling the input (densities and pressure).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sklearn.preprocessing.MaxAbsScaler</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.scaler_output">
+<span class="sig-name descname"><span class="pre">scaler_output</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.scaler_output" title="Permalink to this definition"></a></dt>
+<dd><p>The MaxAbsScaler used for scaling the output (k’s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sklearn.preprocessing.MaxAbsScaler</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.x_data">
+<span class="sig-name descname"><span class="pre">x_data</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.x_data" title="Permalink to this definition"></a></dt>
+<dd><p>The preprocessed input data (densities and pressure).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.y_data">
+<span class="sig-name descname"><span class="pre">y_data</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.y_data" title="Permalink to this definition"></a></dt>
+<dd><p>The preprocessed output data (k’s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.all_data">
+<span class="sig-name descname"><span class="pre">all_data</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.all_data" title="Permalink to this definition"></a></dt>
+<dd><p>The original unprocessed data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="DataHandler.LoadMultiPressureDataset.num_pressure_conditions">
+<span class="sig-name descname"><span class="pre">num_pressure_conditions</span></span><a class="headerlink" href="#DataHandler.LoadMultiPressureDataset.num_pressure_conditions" title="Permalink to this definition"></a></dt>
+<dd><p>The number of pressure conditions in the data file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
 </dd>
 </dl>
 </dd></dl>

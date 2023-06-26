@@ -50,6 +50,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet"><code class="docutils literal notranslate"><span class="pre">NeuralNet</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.model</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.forward"><code class="docutils literal notranslate"><span class="pre">NeuralNet.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.load_model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.load_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.reset_parameters"><code class="docutils literal notranslate"><span class="pre">NeuralNet.reset_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.save_model"><code class="docutils literal notranslate"><span class="pre">NeuralNet.save_model()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#NeuralNetworkModels.NeuralNet.training"><code class="docutils literal notranslate"><span class="pre">NeuralNet.training</span></code></a></li>
 </ul>
 </li>
@@ -129,6 +132,34 @@
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NeuralNetworkModels.NeuralNet.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NeuralNetworkModels.html#NeuralNet.load_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NeuralNetworkModels.NeuralNet.load_model" title="Permalink to this definition"></a></dt>
+<dd><p>Load the model from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The name of the file to load the model from.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NeuralNetworkModels.NeuralNet.reset_parameters">
+<span class="sig-name descname"><span class="pre">reset_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/NeuralNetworkModels.html#NeuralNet.reset_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NeuralNetworkModels.NeuralNet.reset_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Reset the model parameters by re-initializing the weights.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NeuralNetworkModels.NeuralNet.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/NeuralNetworkModels.html#NeuralNet.save_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NeuralNetworkModels.NeuralNet.save_model" title="Permalink to this definition"></a></dt>
+<dd><p>Save the model to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The name of the file to save the model to.</p>
 </dd>
 </dl>
 </dd></dl>

@@ -119,7 +119,7 @@
         <span class="k">if</span> <span class="n">react_idx</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">ncolumns</span><span class="o">-</span><span class="n">nspecies</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="n">tmp_x</span> <span class="o">=</span> <span class="n">all_xy</span><span class="p">[:,</span><span class="n">x_columns</span><span class="p">]</span><span class="o">*</span><span class="mi">10</span> <span class="c1"># k&#39;s  #*10 to avoid being at float32 precision limit 1e-17  </span>
+        <span class="n">tmp_x</span> <span class="o">=</span> <span class="n">all_xy</span><span class="p">[:,</span><span class="n">x_columns</span><span class="p">]</span><span class="o">*</span><span class="mf">1e30</span> <span class="c1"># k&#39;s  #*10 to avoid being at float32 precision limit 1e-17  </span>
         <span class="n">tmp_y</span> <span class="o">=</span> <span class="n">all_xy</span><span class="p">[:,</span><span class="n">y_columns</span><span class="p">]</span> <span class="c1"># densities</span>
 
         <span class="c1"># Create scalers</span>
@@ -168,11 +168,91 @@
 
 
 
+<div class="viewcode-block" id="LoadMultiPressureDataset"><a class="viewcode-back" href="../DataHandler.html#DataHandler.LoadMultiPressureDataset">[docs]</a><span class="k">class</span> <span class="nc">LoadMultiPressureDataset</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A custom dataset class for loading and preprocessing data with multiple pressure conditions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        src_file (str): The path to the source file containing the data.</span>
+<span class="sd">        nspecies (int): The number of species.</span>
+<span class="sd">        react_idx (list or None, optional): The indices of the columns representing the output (k&#39;s).</span>
+<span class="sd">            If None, the first 9 columns are considered as output. Default is None.</span>
+<span class="sd">        m_rows (int or None, optional): The maximum number of rows to load from the source file.</span>
+<span class="sd">            Default is None, which loads all rows.</span>
+<span class="sd">        columns (list or None, optional): The indices of the columns to load from the source file.</span>
+<span class="sd">            Default is None, which loads all columns.</span>
+<span class="sd">        scaler_input (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the input (densities and pressure).</span>
+<span class="sd">            If None, a new scaler is created. Default is None.</span>
+<span class="sd">        scaler_output (sklearn.preprocessing.MaxAbsScaler, optional): The MaxAbsScaler used for scaling the output (k&#39;s).</span>
+<span class="sd">            If None, a new scaler is created. Default is None.</span>
+<span class="sd">        num_pressure_conditions (int): The number of pressure conditions in the data file.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        scaler_input (sklearn.preprocessing.MaxAbsScaler): The MaxAbsScaler used for scaling the input (densities and pressure).</span>
+<span class="sd">        scaler_output (sklearn.preprocessing.MaxAbsScaler): The MaxAbsScaler used for scaling the output (k&#39;s).</span>
+<span class="sd">        x_data (torch.Tensor): The preprocessed input data (densities and pressure).</span>
+<span class="sd">        y_data (torch.Tensor): The preprocessed output data (k&#39;s).</span>
+<span class="sd">        all_data (torch.Tensor): The original unprocessed data.</span>
+<span class="sd">        num_pressure_conditions (int): The number of pressure conditions in the data file.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_file</span><span class="p">,</span> <span class="n">nspecies</span><span class="p">,</span> <span class="n">num_pressure_conditions</span><span class="p">,</span> <span class="n">react_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">m_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">scaler_input</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scaler_output</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">LoadMultiPressureDataset</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_pressure_conditions</span> <span class="o">=</span> <span class="n">num_pressure_conditions</span>
+
+        <span class="n">all_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">src_file</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="n">m_rows</span><span class="p">,</span>
+                              <span class="n">usecols</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;  &quot;</span><span class="p">,</span>
+                              <span class="n">comments</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+        <span class="n">ncolumns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">y_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ncolumns</span> <span class="o">-</span> <span class="n">nspecies</span><span class="p">,</span> <span class="n">ncolumns</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_columns</span> <span class="o">=</span> <span class="n">react_idx</span>
+        <span class="k">if</span> <span class="n">react_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_columns</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ncolumns</span> <span class="o">-</span> <span class="n">nspecies</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">x_data</span> <span class="o">=</span> <span class="n">all_data</span><span class="p">[:,</span> <span class="n">x_columns</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e30</span>  <span class="c1"># k&#39;s  # *10 to avoid being at float32 precision limit 1e-17</span>
+        <span class="n">y_data</span> <span class="o">=</span> <span class="n">all_data</span><span class="p">[:,</span> <span class="n">y_columns</span><span class="p">]</span>  <span class="c1"># densities</span>
+
+        <span class="c1"># Reshape data for multiple pressure conditions</span>
+        <span class="n">x_data</span> <span class="o">=</span> <span class="n">x_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">y_data</span> <span class="o">=</span> <span class="n">y_data</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">y_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Create scalers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span> <span class="o">=</span> <span class="n">scaler_input</span> <span class="ow">or</span> <span class="p">[</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">MaxAbsScaler</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span> <span class="o">=</span> <span class="n">scaler_output</span> <span class="ow">or</span> <span class="p">[</span><span class="n">preprocessing</span><span class="o">.</span><span class="n">MaxAbsScaler</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">)]</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_pressure_conditions</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">scaler_input</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">scaler_output</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">x_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_input</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">y_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_output</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">y_data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="c1"># Convert to tensors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">x_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">y_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_data</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the length of the dataset.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a sample from the dataset at the given index.&quot;&quot;&quot;</span>
+        <span class="n">densities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_data</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Extract densities for all pressure conditions</span>
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_data</span><span class="p">[:,</span> <span class="n">idx</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Extract coefficients for all pressure conditions</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">densities</span><span class="p">,</span> <span class="n">coef</span><span class="p">)</span>  <span class="c1"># Tuple of two matrices</span></div>
+
+
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">k_idx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">LoadDataset</span><span class="p">(</span><span class="n">src_file</span><span class="o">=</span><span class="s2">&quot;data/datapoints_pressure_3k.txt&quot;</span><span class="p">,</span> <span class="n">nspecies</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">react_idx</span><span class="o">=</span><span class="n">k_idx</span><span class="p">,</span> <span class="n">m_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">x_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">y_data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">main_dataset</span> <span class="o">=</span> <span class="n">LoadMultiPressureDataset</span><span class="p">(</span><span class="n">src_file</span><span class="o">=</span><span class="s2">&quot;data/datapoints_O2_novib_mainNet.txt&quot;</span><span class="p">,</span> <span class="n">nspecies</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">num_pressure_conditions</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">react_idx</span><span class="o">=</span><span class="n">k_idx</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">main_dataset</span><span class="o">.</span><span class="n">y_data</span><span class="p">)</span>
+    <span class="c1"># print(main_dataset[0,:]) # [train example 0, densities]</span>
 </pre></div>
 
            </div>
