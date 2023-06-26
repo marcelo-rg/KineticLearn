@@ -2,3 +2,5 @@ numpy
 torch
 scikit-learn
 matplotlib
+sphinx
+sphinx_rtd_theme
