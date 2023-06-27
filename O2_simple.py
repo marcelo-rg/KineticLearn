@@ -8,6 +8,23 @@ from src.Trainer import NSurrogatesModelTrainer
 from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
 
+# import logging
+# from rich.console import Console
+# from rich.traceback import install
+# from rich.logging import RichHandler
+
+# install()
+
+# logging.basicConfig(
+#     level="NOTSET", handlers=[RichHandler()]
+# )
+# console = Console()
+# logger = logging.getLogger("rich")
+# logger.info("Starting training...")
+# logger.error("Something went wrong!")
+
+
+
 # recover reproducibility
 torch.manual_seed(1)
 
