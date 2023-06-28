@@ -9,7 +9,7 @@ class PlottingTools:
         if not os.path.exists('images'):
             os.makedirs('images')
 
-    def plot_loss_history(self, training_losses, validation_losses):
+    def plot_loss_history(self, training_losses, validation_losses, filename=None):
         plt.clf()
         if 'surrogate_0' in training_losses.keys():
             n_epochs = len(training_losses['surrogate_0'])
@@ -21,7 +21,10 @@ class PlottingTools:
                 plt.ylabel('Loss')
                 plt.title(f'Surrogate {i} Loss History')
                 plt.legend()
-                plt.savefig(f'images/surrogate_{i}_loss_history.png')
+                if filename is None:
+                    plt.savefig(f'images/surrogate_{i}_loss_history.png')
+                else:
+                    plt.savefig(os.path.join(filename))
         
         # if training_losses['main_model'] exits, plot main model loss history
         if 'main_model' in training_losses.keys():
@@ -33,7 +36,10 @@ class PlottingTools:
             plt.ylabel('Loss')
             plt.title('Main Model Loss History')
             plt.legend()
-            plt.savefig('images/main_model_loss_history.png')
+            if filename is None:
+                plt.savefig('images/main_model_loss_history.png')
+            else:
+                plt.savefig(filename)
 
 
     def plot_predictions_main(self, model, test_dataset, filename='predictions_vs_true_values.png'):
@@ -143,7 +149,7 @@ class PlottingTools:
 
 
     def plot_predictions_surrog(self, model, test_dataset, filename='predictions_vs_true_values_mainModel.png'):
-        model.eval()  # Switch to evaluation mode-
+        model.eval()  # Switch to evaluation mode
 
         # Make sure the data is on the CPU
         test_data = test_dataset[:][0].to("cpu")

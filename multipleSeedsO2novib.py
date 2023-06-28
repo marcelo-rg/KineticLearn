@@ -43,7 +43,7 @@ main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_
 criterion = MSELoss()
 
 # gen list of random seeds
-seeds = [i for i in range(25)]
+seeds = [i for i in range(5)]
 
 # --------------------   Model   -------------------- #
 # List of hidden sizes for different architectures
@@ -97,6 +97,9 @@ for hidden_size in hidden_sizes:
 
         # Save model parameters
         main_net.save_model(f'{hidden_size}_checkpoints/main_model_seed{idx}.pth')
+
+        # Plot training and validation losses
+        plotter.plot_loss_history(training_losses_main, validation_losses_main, f'checkpoints/{hidden_size}_checkpoints/loss_history_seed{idx}.png')
 
     # write info to file
     with open(f'checkpoints/{hidden_size}_checkpoints/log_table.txt', 'w') as f:
