@@ -15,7 +15,7 @@ torch.manual_seed(8)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 2 # number of surrogate models 
+n_surrog = 3 # number of surrogate models 
 n_param = 11 # number of input densities
 k_columns = [0,1,2]
 
@@ -34,7 +34,7 @@ datasets = [LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", n
 
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_3surrog.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
 # Specify loss function
