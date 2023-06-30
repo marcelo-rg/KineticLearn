@@ -1,5 +1,5 @@
 numpy
-torch
+https://download.pytorch.org/whl/cpu
 scikit-learn
 matplotlib
 sphinx
