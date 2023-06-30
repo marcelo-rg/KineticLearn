@@ -1,5 +1,5 @@
 numpy
-torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+torch
 scikit-learn
 matplotlib
 sphinx
