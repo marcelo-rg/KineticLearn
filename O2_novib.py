@@ -15,7 +15,7 @@ torch.manual_seed(49)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Specify number of surrogate models and densities
-n_surrog = 3 # number of surrogate models 
+n_surrog = 2 # number of surrogate models 
 n_param = 11 # number of input densities
 k_columns = [0,1,2]
 
@@ -34,7 +34,7 @@ datasets = [LoadDataset(src_file=f"data/datapoints_O2_novib_pressure_{i}.txt", n
 
 
 # Load main net dataset
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_3surrog.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
+main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_2surrog.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
 
 # Specify loss function
@@ -49,11 +49,11 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer,
 
 start = time.time()
 # Train surrogate models
-# training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
-# trainer.save_surrogate_models()
+training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
+trainer.save_surrogate_models()
 
 # Load surrogate models
-trainer.load_surrogate_models()
+# trainer.load_surrogate_models()
 
 # trainer.freeze_surrogate_models()
 
@@ -94,6 +94,6 @@ for i in range(n_surrog):
     plotter.plot_predictions_surrog(surrogate_model, test_dataset, filename=f"predictions_vs_true_values_{i}.png")
 
 # Plot validation of main net
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_3surrog_test.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
+main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet_2surrog_test.txt", nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
                             scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output) 
 plotter.plot_predictions_main(model, main_dataset_test, filename="predictions_vs_true_values_main.png") 
