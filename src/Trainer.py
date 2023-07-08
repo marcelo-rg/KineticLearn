@@ -133,19 +133,81 @@ class NSurrogatesModelTrainer:
         return training_losses, validation_losses
 
     
+    def pretrain_model(self, main_dataset, pretrain_epochs=200, lr_rate=0.01):
+        """
+        Pretrains the main neural network model for a specified number of epochs and returns the pretraining training and validation loss history.
 
-    def train_main_model(self, main_dataset, epochs, lr_rate ,pretrain=False):
+        Args:
+            main_dataset (LoadDataset): The main dataset containing input (densities) and target (coefficients) data.
+            pretrain_epochs (int): The number of epochs to pretrain for.
+            lr_rate (float): Learning rate for pretraining.
+
+        Returns:
+            dict: A dictionary mapping the main model to a list of its pretraining losses over all epochs.
+            dict: A dictionary mapping the main model to a list of its pretraining validation losses over all epochs.
+        """
+        # Calculate split sizes
+        train_size = int((1.0 - self.val_split) * len(main_dataset))
+        val_size = len(main_dataset) - train_size
+
+        # Split the dataset
+        train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
+
+        # Create dataloaders
+        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
+        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
+
+        main_model = self.model.main_net
+
+        # Initialize dictionaries to store the loss history
+        pretrain_losses = {'main_model': []}
+        pretrain_val_losses = {'main_model': []}
+        
+        self.set_leaning_rate(lr_rate)
+        loss_func = MSELoss()
+        main_model.train()
+        for epoch in range(pretrain_epochs):
+            epoch_loss = 0.0
+            for x_batch,y_batch in train_dataloader:
+                output = main_model(y_batch.flatten(start_dim=1))
+                loss = loss_func(output, x_batch[:,0,:])
+                epoch_loss += loss.item()
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+            
+            # Validation phase
+            main_model.eval()  
+            epoch_val_loss = 0.0
+
+            with torch.no_grad():
+                for x_batch, y_batch in val_dataloader:
+                    output = main_model(y_batch.flatten(start_dim=1))
+                    val_loss = loss_func(output, x_batch[:,0,:])
+                    epoch_val_loss += val_loss.item()
+
+            # Add loss to history
+            pretrain_losses['main_model'].append(epoch_loss)
+            pretrain_val_losses['main_model'].append(epoch_val_loss)
+
+            print(f'Pretrain: Epoch {epoch+1}/{pretrain_epochs}, Training Loss: {epoch_loss}, Validation Loss: {epoch_val_loss}')
+            
+        return pretrain_losses, pretrain_val_losses
+
+
+    def train_main_model(self, main_dataset, epochs, lr_rate):
         """
         Trains the main neural network model for a specified number of epochs and returns the training and validation loss histories.
 
-        Each epoch consists of a training phase and a validation phase. In the training phase, the main model is updated
-        to reduce the loss on the training data. In the validation phase, the loss on the validation data is calculated,
-        but the model is not updated. The training and validation losses for each epoch are printed out and stored in
-        dictionaries that are returned by this method.
+        The model is trained using the main criterion, which calculates the loss as the sum of mean squared errors (MSE) between 
+        the surrogate outputs and targets. The training and validation losses for each epoch are printed out and stored in dictionaries 
+        that are returned by this method.
 
         Args:
             main_dataset (LoadDataset): The main dataset containing input (densities) and target (coefficients) data.
             epochs (int): The number of epochs to train for.
+            lr_rate (float): Learning rate for the main training phase.
 
         Returns:
             dict: A dictionary mapping the main model to a list of its training losses over all epochs.
@@ -162,38 +224,15 @@ class NSurrogatesModelTrainer:
         train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
         val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
 
-
         main_model = self.model.main_net
 
-        if pretrain:
-            self.set_leaning_rate(0.01)
-            loss_func = MSELoss()
-            main_model.train()
-            for epoch in range(200):
-                epoch_loss = 0.0
-                for x_batch,y_batch in train_dataloader:
-                    output = main_model(y_batch.flatten(start_dim=1))
-                    loss = loss_func(output, x_batch[:,0,:])
-                    epoch_loss += loss.item()
-
-                    self.optimizer.zero_grad()
-                    loss.backward()
-                    self.optimizer.step()
-
-                # Print the training and validation losses for this epoch
-                print(f'Pretrain: Epoch {epoch+1}/{epochs}, Training Loss: {epoch_loss}')
-
-
+        # Initialize dictionaries to store the loss history
+        training_losses = {'main_model': []}
+        validation_losses = {'main_model': []}
+        
         def main_criterion(output, target):
             """
             Calculates the main criterion loss as the sum of mean squared errors (MSE) between the surrogate outputs and targets.
-
-            Args:
-                output (torch.Tensor): The surrogate outputs of shape (batch_size, num_pressure_conditions, output_size).
-                target (torch.Tensor): The targets of shape (batch_size, num_pressure_conditions, output_size).
-
-            Returns:
-                torch.Tensor: The main criterion loss.
             """
             loss_func = MSELoss()
             loss = 0.0
@@ -203,30 +242,18 @@ class NSurrogatesModelTrainer:
                 surrogate_output = output[:, i, :]  # Surrogate output for the i-th pressure condition
                 target_i = target[:, i, :]  # Target for the i-th pressure condition
                 loss += loss_func(surrogate_output, target_i)
-            
-            # # try to recover training with only one pressure condition
-            # surrogate_output = output[:, 0, :]  # Surrogate output for the i-th pressure condition
-            # target_i = target[:, 0, :]  # Target for the i-th pressure condition
-            # loss = loss_func(surrogate_output, target_i)
-
 
             return loss
 
-        # Initialize dictionaries to store the loss history
-        training_losses = {'main_model': []}
-        validation_losses = {'main_model': []}
-
         self.set_leaning_rate(lr_rate)
         for epoch in range(epochs):
-
             # Training phase
-            main_model.train()  # Set the main model to training mode
-            epoch_loss = 0.0  # Initialize epoch loss for the main model
+            main_model.train()  
+            epoch_loss = 0.0  
 
             for _, y_batch in train_dataloader:
                 # Move data to device
                 y_batch = y_batch.to(self.device)
-
 
                 # Forward pass through the main model
                 main_input = y_batch.flatten(start_dim=1)
@@ -234,34 +261,28 @@ class NSurrogatesModelTrainer:
 
                 # Compute loss
                 surrogate_outputs = []
-
                 for surrogate_net in self.model.surrog_nets:
                     surrogate_net.eval()
-                    # Forward pass through the surrogate model
                     surrogate_output = surrogate_net(main_output)
-                    surrogate_outputs.append(surrogate_output)  # Set requires_grad to True
+                    surrogate_outputs.append(surrogate_output)
 
                 # Stack surrogate outputs along the second dimension
                 surrogate_outputs = torch.stack(surrogate_outputs, dim=1)
-
                 loss = main_criterion(surrogate_outputs, y_batch)
 
                 # Accumulate loss
-                epoch_loss += loss
+                epoch_loss += loss.item()
 
                 # Backward pass and optimization
                 self.optimizer.zero_grad()
                 loss.backward()
-                # freeze surrogate models
-                # self.freeze_surrogate_models()
                 self.optimizer.step()
 
             # Add loss to history
-            training_losses['main_model'].append(epoch_loss.item())
-
+            training_losses['main_model'].append(epoch_loss)
 
             # Validation phase
-            main_model.eval()  # Set the main model to evaluation mode
+            main_model.eval()  
             epoch_val_loss = 0.0
 
             with torch.no_grad():
@@ -292,17 +313,22 @@ class NSurrogatesModelTrainer:
             # Add loss to history
             validation_losses['main_model'].append(epoch_val_loss * (1 - self.val_split) / self.val_split)
 
-            # Print the training and validation losses for this epoch
             print(f'Epoch {epoch+1}/{epochs}, Training Loss: {epoch_loss}, Validation Loss: {epoch_val_loss*(1-self.val_split)/self.val_split}')
 
         return training_losses, validation_losses
 
     def freeze_surrogate_models(self):
+        """
+        Freezes the surrogate models by setting the `requires_grad` attribute of all their parameters to False.
+        """
         for surrog_net in self.model.surrog_nets:
             for param in surrog_net.parameters():
                 param.requires_grad = False
-    
+
     def unfreeze_surrogate_models(self):
+        """
+        Unfreezes the surrogate models by setting the `requires_grad` attribute of all their parameters to True.
+        """
         for surrog_net in self.model.surrog_nets:
             for param in surrog_net.parameters():
                 param.requires_grad = True

@@ -1,17 +1,14 @@
 import torch
 from torch.nn import MSELoss
 from torch.optim import Adam
+import os
 
 from src.Model import NSurrogatesModel
 from src.Trainer import NSurrogatesModelTrainer
 from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
-
-# make directory to save multiple models
-import os
-if not os.path.exists('checkpoints/seeds_checkpoints'):
-    os.makedirs('checkpoints/seeds_checkpoints')
-
+from src.config import dict
+from seeds_analysis import create_histograms, plot_mean_val_loss, plot_heatmap
 
 # recover reproducibility
 torch.manual_seed(8)
@@ -19,36 +16,45 @@ torch.manual_seed(8)
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Specify number of surrogate models and densities
-n_surrog = 3 # number of surrogate models 
-n_param = 3 # number of input densities
-k_columns = [0,1,2]
+#############################################################
+##                                                         ##
+##   ############# Specify scheme and path #############   ##
+##                                                         ##
+#############################################################
+scheme = 'O2_novib'
+n_surrog = 2 # number of surrogate models
+folder = '50epochs'
+path = os.path.join(
+    scheme,
+    folder,
+)
+#############################################################
+
+n_param = dict[scheme]['n_param'] # number of input densities
+k_columns = dict[scheme]['k_columns']
 
 # Define the model parameters
-input_size = 3 # number of input densities
-output_size = 3  # number of coefficients
-# hidden_size = (10,10)  # architecture of the main model
+input_size = dict[scheme]['n_densities'] # number of input densities
+output_size = len(k_columns)  # number of coefficients
 max_epoch = 200
 
-# Initialize 
-plotter = PlottingTools()
 
-# --------------------   Data   -------------------- #
+# Load surrogate datasets 
+datasets = [LoadDataset(src_file= dict[scheme]['surrogate_dataset']+f"{i}.txt", nspecies=n_param, react_idx=k_columns) for i in range(n_surrog)]
 
-# Load surrogate datasets
-datasets = [LoadDataset(src_file=f"data/datapoints_pressure_{i}.txt",nspecies=3, react_idx=k_columns) for i in range(n_surrog)]
 
-# Load main net datasets
-main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_2k.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,
+# Load main net dataset
+main_dataset = LoadMultiPressureDataset(src_file= dict[scheme]['main_dataset'], nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,
                                          scaler_input=[datasets[i].scaler_input for i in range(n_surrog)], scaler_output=[datasets[i].scaler_output for i in range(n_surrog)])
-main_dataset_test = LoadMultiPressureDataset(src_file="data/datapoints_mainNet_test.txt", nspecies=3, num_pressure_conditions=n_surrog, react_idx=k_columns,\
-                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output, m_rows=3000)
+
+main_dataset_test = LoadMultiPressureDataset(src_file= dict[scheme]['main_dataset_test'], nspecies=n_param, num_pressure_conditions=n_surrog, react_idx=k_columns,\
+                            scaler_input=main_dataset.scaler_input, scaler_output=main_dataset.scaler_output)
 
 # Specify loss function
 criterion = MSELoss()
 
 # gen list of random seeds
-seeds = [i for i in range(5)]
+seeds = [i for i in range(10)]
 
 # --------------------   Model   -------------------- #
 # List of hidden sizes for different architectures
@@ -56,12 +62,22 @@ hidden_sizes = [(10,), (20,), (30,), (40,), (50,),
                 (10, 10), (20, 20), (30, 30), (40, 40), (50, 50),
                 (10, 10, 10), (20, 20, 20), (30, 30, 30), (40, 40, 40), (50, 50, 50)]
 
-# hidden_sizes = [(10, 10)]
-# start_position = hidden_sizes.index((50, 50))
+# for O2_novib no activation function:
+# hidden_sizes = [(10,), (20,), (30,), (40,), (50,), (60,), (80,), (100,)] 
+hidden_sizes = [(10, 10)]
+
+# start_position = hidden_sizes.index((10, 10))
+# plot_mean_val_loss(hidden_sizes, path)
+# plot_heatmap(hidden_sizes, path)
+# exit()
+
+
+# Initialize plotting tools
+plotter = PlottingTools(dict[scheme]['species'])
 
 for hidden_size in hidden_sizes:
     # Directory for the current architecture
-    current_arch_dir = f'checkpoints/{hidden_size}_checkpoints'
+    current_arch_dir = os.path.join("checkpoints", path, f"{hidden_size}_checkpoints")
     if not os.path.exists(current_arch_dir):
         os.makedirs(current_arch_dir)
 
@@ -87,27 +103,35 @@ for hidden_size in hidden_sizes:
 
         main_net = trainer.model.main_net
 
-        # reset model
-        # main_net.reset_parameters()
+        # Pretrain main net
+        training_losses_pretrain, validation_losses_pretrain = trainer.pretrain_model(main_dataset, pretrain_epochs=50, lr_rate=0.01)
 
         # Train main net
-        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200,lr_rate=0.05, pretrain=True)
+        training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 250, lr_rate=0.1)
 
         # Save info
         loss_list.append([training_losses_main['main_model'][-1], validation_losses_main['main_model'][-1]])
         rel_error_list.append(plotter.get_relative_error(main_net,main_dataset_test))
 
         # Save model parameters
-        main_net.save_model(f'{hidden_size}_checkpoints/main_model_seed{idx}.pth')
+        main_net.save_model(os.path.join(path, f"{hidden_size}_checkpoints", f"main_model_seed{idx}.pth"))
 
-        # Save loss plots
-        plotter.plot_loss_history(training_losses_main, validation_losses_main, f'checkpoints/{hidden_size}_checkpoints/loss_history_seed{idx}.png')
+        # Plot training and validation losses pretrain
+        plotter.plot_loss_history(training_losses_pretrain, validation_losses_pretrain, os.path.join(current_arch_dir ,f"loss_history_pretrain_seed{idx}.png"))
 
+        # Plot training and validation losses main
+        plotter.plot_loss_history(training_losses_main, validation_losses_main, os.path.join(current_arch_dir ,f"loss_history_main_seed{idx}.png"))
 
     # write info to file
-    with open(f'checkpoints/{hidden_size}_checkpoints/log_table.txt', 'w') as f:
+    with open(os.path.join(current_arch_dir ,f"log_table.txt"), 'w') as f:
         for i in range(len(seeds)):
             # Convert elements of rel_error_list[i] into strings and join them with comma
             rel_error_str = ','.join([str(elem) for elem in rel_error_list[i]])
             f.write(f'{loss_list[i][0]},{loss_list[i][1]},{rel_error_str}\n')
+        
 
+
+# Analysis with plots
+create_histograms(hidden_sizes, path)
+plot_mean_val_loss(hidden_sizes, path)
+plot_heatmap(hidden_sizes, path)

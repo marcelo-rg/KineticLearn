@@ -4,13 +4,18 @@ import numpy as np
 import torch
 
 class PlottingTools:
-    def __init__(self):
+    def __init__(self, species):
+        self.species = species
         # Make images directory if it doesn't exist
         if not os.path.exists('images'):
             os.makedirs('images')
 
+    def set_species(self, species):
+        self.species = species
+
     def plot_loss_history(self, training_losses, validation_losses, filename=None):
         plt.clf()
+        # if training_losses['surrogate_0'] exits, plot surrogate loss history
         if 'surrogate_0' in training_losses.keys():
             n_epochs = len(training_losses['surrogate_0'])
             for i in range(len(training_losses)):
@@ -30,10 +35,16 @@ class PlottingTools:
         if 'main_model' in training_losses.keys():
             n_epochs = len(training_losses['main_model'])
             plt.figure(len(training_losses))
-            plt.plot(np.arange(1,n_epochs+1,1),training_losses['main_model'],"-o", markersize=4, label='Training Loss')
-            plt.plot(np.arange(1,n_epochs+1,1),validation_losses['main_model'], "-o", markersize=4, label='Validation Loss')
+            # plt.plot(np.arange(1,n_epochs+1,1),training_losses['main_model'],"-o", markersize=4, label='Training Loss')
+            x_range = np.arange(1, n_epochs+1, 1)
+            plt.plot(x_range, training_losses['main_model'], "-o", markersize=4, label='Training Loss', color='blue')
+            plt.plot(x_range[:int(n_epochs)], validation_losses['main_model'], "-o", markersize=4, label='Validation Loss' ,color='purple')
+            # plt.plot(np.arange(n_epochs,n_epochs,1),validation_losses['main_model'], "-o", markersize=4, label='Validation Loss', color = 'orange')
             plt.xlabel('Epoch')
             plt.ylabel('Loss')
+            
+            # plt.yscale('log')# log scale
+
             plt.title('Main Model Loss History')
             plt.legend()
             if filename is None:
@@ -67,23 +78,24 @@ class PlottingTools:
         predictions_densities = [prediction.numpy() for prediction in predictions_densities]
         true_values = test_targets.numpy()
 
-        species = ['O2(X)', 'O2(a)', 'O(3P)']
-        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
-        fig, axs = plt.subplots(len(predictions_densities)*3, len(species)//2, figsize=(20,15))
+        # -
+        n_species = len(self.species)
+        n_surrogates = len(predictions_densities)
+
+        fig, axs = plt.subplots((n_species*n_surrogates)//5+1, 5, figsize=(20,15))
         axs = axs.flatten()
         colors = ['b', 'g', 'c', 'm', 'y', 'k', 'w']
-        # For each surrogate model
-        # For each surrogate model
+        # Plots for predictions in densities
         for idx, prediction in enumerate(predictions_densities):
             # Plot for each species
-            for i in range(len(species)):  # changed the loop to iterate over range of species length
-                ax = axs[i + len(species)*idx]  # get corresponding ax from the flattened array
+            for i in range(n_species):  # changed the loop to iterate over range of species length
+                ax = axs[idx * n_species + i]  # get corresponding axis 
                 ax.scatter(true_values[idx,:,i], prediction[:, i], color= colors[idx])
                 ax.set_xlabel('True Values')
                 ax.set_ylabel('Predictions')
                 # Add a diagonal line representing perfect agreement
                 ax.plot([0, 1], [0, 1], linestyle='--', color='k')
-                ax.set_title(f'{species[i]}')
+                ax.set_title(f'{self.species[i]}')
 
                 # Calculate relative error
                 denominator = true_values[idx,:,i]
@@ -162,11 +174,6 @@ class PlottingTools:
         predictions = predictions.numpy()
         true_values = test_targets.numpy()
 
-        # Plot for each species
-        species = ['O2(X)','O2(a)','O(3P)']
-        # List of species
-        species = ['O2(X)', 'O2(a1Dg)', 'O2(b1Sg+)', 'O2(A3Su+_C3Du_c1Su-)', 'O2(+,X)', 'O(3P)', 'O(1D)', 'O(+,gnd)', 'O(-,gnd)', 'O3(X)', 'O3(exc)']
-
         # Create 3x4 grid of subplots (it will have 2 empty subplots)
         fig, axs = plt.subplots(4, 3, figsize=(15,20))
 
@@ -174,13 +181,13 @@ class PlottingTools:
         axs = axs.flatten()
 
         # Plot for each species
-        for i in range(len(species)):
+        for i in range(len(self.species)):
             axs[i].scatter(true_values[:, i], predictions[:, i])
             axs[i].set_xlabel('True Values')
             axs[i].set_ylabel('Predictions')
             # Add a diagonal line representing perfect agreement
             axs[i].plot([0, 1], [0, 1], linestyle='--', color='k')
-            axs[i].set_title(f'True Values vs Predictions for {species[i]}')
+            axs[i].set_title(f'True Values vs Predictions for {self.species[i]}')
 
 
             # Calculate relative error
@@ -205,7 +212,7 @@ class PlottingTools:
                 verticalalignment='top', bbox=props)
 
         # Remove the extra subplots
-        for i in range(len(species), len(axs)):
+        for i in range(len(self.species), len(axs)):
             fig.delaxes(axs[i])
 
         plt.tight_layout()
