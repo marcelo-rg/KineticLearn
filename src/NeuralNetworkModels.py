@@ -15,23 +15,21 @@ class NeuralNet(nn.Module):
         output_size (int): The number of output units.
         hidden_size (int or tuple, optional): The size of the hidden layers. If it's an integer, all hidden layers will have the same size. If it's a tuple, each element represents the size of a specific hidden layer. Default is (10, 10).
         activ_f (str, optional): The activation function for the hidden layers. Available options are 'tanh' and 'relu'. Default is 'tanh'.
-        out_activ_f (str or None, optional): The activation function for the output layer. Available options are 'sigmoid' and 'tanh'. If None, no activation function is applied to the output layer. Default is None.
+        out_activ_f (str or None, optional): The activation function for the output layer. Available options are 'sigmoid', 'tanh', 'scaled_sigmoid', and 'softplus_sigmoid'. If 'scaled_sigmoid', the output of the sigmoid is scaled to be in the range (0.01, 0.99). If 'softplus_sigmoid', a Softplus activation function is applied followed by a sigmoid activation function. If None, no activation function is applied to the output layer. Default is None.
+        lmbda (float, optional): The value of lambda for the 'lambda_sigmoid' activation function. Default is 1.5.
 
     Attributes:
         model (torch.nn.Sequential): The sequential model representing the neural network architecture.
 
     """
-    def __init__(self, input_size, output_size, hidden_size=(10, 10), activ_f='tanh', out_activ_f=None):
+    def __init__(self, input_size, output_size, hidden_size=(10, 10), activ_f='tanh', out_activ_f=None, lmbda=1.5):
         super(NeuralNet, self).__init__()
 
-        # Check if the hidden_size is a single value or a tuple
         if isinstance(hidden_size, int):
             hidden_size = (hidden_size,)
 
-        # Create a list to hold the layers
         layers = []
 
-        # Add the input layer
         layers.append(nn.Linear(input_size, hidden_size[0]))
         if activ_f == 'tanh':
             layers.append(nn.Tanh())
@@ -40,7 +38,6 @@ class NeuralNet(nn.Module):
         else:
             raise ValueError("Invalid activation function: {}".format(activ_f))
 
-        # Add the hidden layers
         for i in range(len(hidden_size) - 1):
             layers.append(nn.Linear(hidden_size[i], hidden_size[i + 1]))
             if activ_f == 'tanh':
@@ -50,7 +47,6 @@ class NeuralNet(nn.Module):
             else:
                 raise ValueError("Invalid activation function: {}".format(activ_f))
 
-        # Add the output layer
         layers.append(nn.Linear(hidden_size[-1], output_size))
 
         if out_activ_f is not None:
@@ -58,11 +54,22 @@ class NeuralNet(nn.Module):
                 layers.append(nn.Sigmoid())
             elif out_activ_f == 'tanh':
                 layers.append(nn.Tanh())
+            elif out_activ_f == 'scaled_sigmoid':
+                layers.append(nn.Sigmoid())
+                layers.append(nn.Linear(output_size, output_size))
+                layers[-1].weight.data.fill_(0.98)
+                layers[-1].bias.data.fill_(0.01)
+            elif out_activ_f == 'softplus_sigmoid':
+                layers.append(nn.Softplus())
+                layers.append(nn.Sigmoid())
+            elif out_activ_f == 'lambda_sigmoid':
+                # self.lmbda = nn.Parameter(torch.tensor([lmbda]))
+                self.lmbda = lmbda
             else:
                 raise ValueError("Invalid activation function: {}".format(out_activ_f))
 
-        # Create the sequential model using the layers
-        self.model = nn.Sequential(*layers).to(device)
+        self.model = nn.Sequential(*layers)
+        self.out_activ_f = out_activ_f
 
     def forward(self, x):
         """Forward pass of the neural network.
@@ -74,7 +81,10 @@ class NeuralNet(nn.Module):
             torch.Tensor: The output tensor produced by the neural network.
 
         """
-        return self.model(x)
+        if 'lambda_sigmoid' == self.out_activ_f:
+            return lambda_sigmoid(self.model(x), self.lmbda)
+        else:
+            return self.model(x)
     
     def save_model(self, filename):
         """Save the model to a file.
@@ -108,5 +118,6 @@ class NeuralNet(nn.Module):
                     nn.init.constant_(module.bias, 0.0)
 
 
-if __name__ == "__main__":
-    pass
+def lambda_sigmoid(input, lmbda):
+    return 1 / (1 + torch.exp(-lmbda * input))
+

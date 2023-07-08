@@ -1,7 +1,6 @@
 import numpy as np
 import torch 
 from sklearn import preprocessing
-# torch.set_default_tensor_type(torch.DoubleTensor)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -178,7 +177,4 @@ class LoadMultiPressureDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    k_idx = [0,1,2]
-    main_dataset = LoadMultiPressureDataset(src_file="data/datapoints_O2_novib_mainNet.txt", nspecies=11, num_pressure_conditions=2, react_idx=k_idx)
-    print(main_dataset.y_data)
-    # print(main_dataset[0,:]) # [train example 0, densities]
+    pass

@@ -40,7 +40,7 @@ k_columns = [0,1,2]
 # Define the model parameters
 input_size = 3 # number of input densities
 output_size = 3  # number of coefficients
-hidden_size = (10,10)  # architecture of the main model
+hidden_size = (50,50)  # architecture of the main model
 max_epoch = 200
 
 # Initialize your model
@@ -75,7 +75,7 @@ trainer.save_surrogate_models()
 # trainer.freeze_surrogate_models()
 
 # set new learning rate for main net
-trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1)
+trainer.optimizer = Adam(model.main_net.parameters(), lr=0.1 )#, weight_decay=1e-4)
 
 # Train main net
 training_losses_main, validation_losses_main = trainer.train_main_model(main_dataset, epochs = 200, pretrain=True, lr_rate=0.05)
