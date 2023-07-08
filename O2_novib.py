@@ -9,7 +9,7 @@ from src.DataHandler import LoadDataset, LoadMultiPressureDataset
 from src.PlottingTools import PlottingTools
 
 # recover reproducibility
-torch.manual_seed(8)
+torch.manual_seed(49)
 
 # Specify device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -49,11 +49,11 @@ trainer = NSurrogatesModelTrainer(model, datasets, device, criterion, optimizer,
 
 start = time.time()
 # Train surrogate models
-# training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
-# trainer.save_surrogate_models()
+training_losses, validation_losses = trainer.train_surrg_models(max_epoch_surrg)
+trainer.save_surrogate_models()
 
 # Load surrogate models
-trainer.load_surrogate_models()
+# trainer.load_surrogate_models()
 
 # trainer.freeze_surrogate_models()
 
