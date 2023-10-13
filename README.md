@@ -1,1 +1,1 @@
-# Thesis
+# KineticLearn
