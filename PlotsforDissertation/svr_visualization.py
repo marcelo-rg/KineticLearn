@@ -29,7 +29,7 @@ y_rbf_lowC_upper = y_rbf_lowC + svr_rbf_lowC.epsilon
 y_rbf_lowC_lower = y_rbf_lowC - svr_rbf_lowC.epsilon
 
 # Plotting
-plt.figure(figsize=(12, 6))
+plt.figure(figsize=(15, 6))
 
 # Linear Kernel
 plt.subplot(1, 2, 1)
@@ -53,7 +53,6 @@ plt.plot(X, y_rbf_lowC, color='c', lw=2, label=r'RBF model (C=0.1, $\epsilon$ = 
 plt.plot(X, y_rbf_lowC_upper, 'c--')
 plt.plot(X, y_rbf_lowC_lower, 'c--')
 plt.scatter(X[svr_rbf.support_], y[svr_rbf.support_], facecolor="none", edgecolor="k", s=100)
-# plt.scatter(X[svr_rbf_lowC.support_], y[svr_rbf_lowC.support_], facecolor="none", edgecolor="c", s=100)
 plt.xlabel('X', fontsize=12)
 plt.ylabel('Y', fontsize=12)
 plt.title('Support Vector Regression with RBF Kernel')
@@ -65,6 +64,5 @@ plt.rcParams.update({'font.size': 16})
 plt.rcParams["legend.fontsize"] = 20
 
 # Adjust the subplot layout
-
 plt.tight_layout()
 plt.show()

@@ -8,7 +8,6 @@ num_folds = 5
 data = np.ones(100)
 
 # Create colors for training and validation
-# colors = ["#FFFFFF", "#808080"] # white, gray
 colors = ["#808080", "#FFFFFF"] # gray, white
 
 fig, ax = plt.subplots(figsize=(10, 5))
@@ -50,4 +49,3 @@ ax.legend(loc="upper right", prop={'size': 12})  # Enlarged legend
 # Display the plot
 plt.tight_layout()
 plt.show()
-# plt.savefig("cross_validation_vizualization.pdf")

@@ -55,7 +55,7 @@ def plot_latin_hypercube(points, sampling_type="normal"):
     plt.show()
 
 
-# Example usage
-npoints = 10
-plot_latin_hypercube(npoints, sampling_type="normal")
-plot_latin_hypercube(npoints, sampling_type="log_uniform")
+if __name__ == "__main__":
+    npoints = 10
+    plot_latin_hypercube(npoints, sampling_type="normal")
+    plot_latin_hypercube(npoints, sampling_type="log_uniform")

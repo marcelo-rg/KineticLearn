@@ -25,7 +25,7 @@ def derivative_relu(x):
 x = np.linspace(-4.5, 4.5, 1000)
 
 # Create the plots
-fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+fig, ax = plt.subplots(1, 2, figsize=(15, 6))
 
 # set a grid 
 ax[0].grid()

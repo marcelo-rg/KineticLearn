@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os
 
-folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
+# folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
 
 # Define the range for x values
 x = np.linspace(1, 20, 1000)
@@ -28,7 +27,6 @@ min_val_epoch = x_limited[min_val_index]
 
 # Plotting code
 plt.figure(figsize=(10,5))
-# plt.axhline(xmin= 0, xmax= 2,y=min_val, color='dimgrey', linestyle='--')
 plt.plot((1, 5), (min_val, min_val), 'k-',linestyle='--', color='dimgrey')
 plt.plot(x_limited, training_curve_limited, linestyle='-.', label='Training Loss', color='blue')
 plt.plot(x_limited, validation_curve_linear_updated, label='Validation Loss', color='red')
@@ -53,5 +51,5 @@ plt.yticks(fontsize=14)
 plt.xlabel('Epochs', fontsize=14)
 plt.ylabel('Loss', fontsize=14)
 plt.legend(fontsize=14)
-# plt.show()
-plt.savefig(folder_path +"early_stopping.pdf")
+plt.show()
+# plt.savefig(folder_path +"early_stopping.pdf")
