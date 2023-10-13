@@ -3,6 +3,7 @@ import matlab.engine
 import os
 import re
 import SamplingMorrisMethod as morris
+from scipy.stats import qmc
 np.random.seed(10) # Recover reproducibility
 
 #-----------------------------------------------------------------------------------------------------
@@ -19,28 +20,66 @@ class Parameters():
         self.kcolumns = None
     
     # protect these methods
-    def morris_kset(self, k , p, r, k_range_type, k_range, kcolumns):
+    def latin_hypercube_kset(self, k, kcolumns=None, krange=[1, 10]):
         if k is None:
             print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
             exit()
-
-        self.k_set =  morris.MorrisSampler(k, p, r, k_range_type, k_range, indexes= kcolumns)
-
-
-    def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
+        
         k_size = len(k)
         self.kcolumns = kcolumns
+        self.k_set = np.full((self.n_points, k_size), k)
+
+        sampler= qmc.LatinHypercube(d=k_size, seed=10)
+        array_random = sampler.random(n=self.n_points).T
+        print(array_random.shape)
+
+        # Rescale the generated array to the desired range
+        scaled_array = (krange[1] - krange[0]) * array_random + krange[0]
+        
+        for (idx, item) in enumerate(kcolumns):
+            self.k_set[:, idx] = scaled_array[idx] * k[idx]
+
+        return self.k_set
+        
+
+
+    def morris_kset(self, k_real , p, r, k_range_type, k_range, kcolumns):
+        if k_real is None:
+            print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
+            exit()
+
+        self.k_set =  morris.MorrisSampler(k_real, p, r, k_range_type, k_range, indexes= kcolumns)
+        return self.k_set
+    
+
+    def random_kset(self, k, kcolumns=None, krange=[1, 10], pdf_function='uniform'):
         if k is None:
             print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
             exit()
-        array_random = np.random.uniform(krange[0], krange[1], size = (k_size, self.n_points))
-        
 
-        # create an k_set full of the constant values in k
+        # In case we use log uniform distribution
+        def loguniform(low=0, high=1, size=None, base=np.e):
+                return np.power(base, np.random.uniform(np.emath.logn(base,low), np.emath.logn(base,high), size))
+        
+        k_size = len(k)
+        self.kcolumns = kcolumns
         self.k_set = np.full((self.n_points, k_size), k)
 
+        if pdf_function == 'uniform':
+            array_random = np.random.uniform(krange[0], krange[1], size=(k_size, self.n_points))
+        elif pdf_function == 'log':
+            array_random = loguniform(krange[0], krange[1], size=(k_size, self.n_points))
+        # Add more distribution options here if needed
+        else: 
+            print('\nError: random_kset(): pdf_function is incorrect. Please choose between \'uniform\' and \'log\'')
+            exit()
+
+        
         for (idx, item) in enumerate(kcolumns):
-            self.k_set[:,item] = array_random[idx]*k[item]
+            self.k_set[:, idx] = array_random[idx] * k[idx]
+
+        return self.k_set
+
 
     def fixed_kset(self, k):
         k_set = []
@@ -115,8 +154,11 @@ class Simulations():
 
         self.parameters.morris_kset(k, p, r, k_range_type, k_range, kcolumns)
 
-    def random_kset(self, kcolumns , true_values , krange= [1, 10]): 
-        self.parameters.random_kset(true_values , kcolumns, krange)
+    def latin_hypercube_kset(self, k, kcolumns=None, krange=[1, 10]):
+        self.parameters.latin_hypercube_kset(k, kcolumns, krange)
+
+    def random_kset(self, kcolumns , true_values , krange= [1, 10], pdf_function='uniform'): 
+        self.parameters.random_kset(true_values , kcolumns, krange, pdf_function)
 
     def fixed_kset(self, k):
         self.parameters.fixed_kset(k)
@@ -150,19 +192,45 @@ class Simulations():
             with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file:
                 content = file.readlines()
 
-            matches = []
-            flag = False
+            # Find the line from which the reaction lines start
             for i, line in enumerate(content):
                 if 'neutral species collisions' in line:
-                    flag = True
-                elif flag and 'constantRateCoeff' in line:
-                    matches.append(i)
+                    rel_counter = i +1
+            
+            # Find the indices of the lines that need to be replaced
+            index_map = {}
+            line_info = []
+            for idx, value in enumerate(indices):
+                if value in index_map:
+                    index_map[value].append(idx)
+                else:
+                    index_map[value] = [idx]
 
-            for idx, value in zip(indices, new_values):
-                if idx < len(matches):
-                    line_parts = content[matches[idx]].split('|')
-                    line_parts[2] = ' ' + "{:.4E}".format(value) + ' '
-                    content[matches[idx]] = '|'.join(line_parts)
+            for value, indexes in index_map.items():
+                if len(indexes) == 1:
+                    line_info.append([value+ rel_counter, indexes[0]])
+                else:
+                    line_info.append([value+ rel_counter, indexes])
+
+
+            for item in line_info:
+                line_idx = item[0]
+                new_values_indexes = item[1]
+                line_parts = content[line_idx].split('|')
+                if 'constantRateCoeff' in line_parts[1]:
+                    line_parts[2] = ' ' + "{:.4E}".format(new_values[new_values_indexes]) + ' '
+                elif 'arrheniusSumGasTemp' in line_parts[1]:
+                    arrhenius_parts = line_parts[2].split(',')
+                    if isinstance(new_values_indexes, int): # if there is only one index
+                        arrhenius_parts[0] = ' ' + "{:.4E}".format(new_values_indexes) + ' '
+                    else:
+                        for i, index in enumerate(new_values_indexes):
+                            arrhenius_parts[i] = ' ' + "{:.4E}".format(new_values[index]) + ' '
+                    line_parts[2] = ','.join(arrhenius_parts)
+
+                content[line_idx] = '|'.join(line_parts)
+
+
 
             # Write the updated content back to the file
             with open(filename, 'w') as file:
@@ -255,7 +323,7 @@ class Simulations():
         eng = matlab.engine.start_matlab()
         s = eng.genpath(self.loki_path)
         eng.addpath(s, nargout=0) # add loki code folder to search path of matlab
-        eng.loki_loop_parallel(nargout=0)  # run the matlab script
+        eng.loki_loop(nargout=0)  # run the matlab script
 
 
 
@@ -313,17 +381,18 @@ if __name__ == '__main__':
     chem_file = "oxygen_novib.chem" 
     setup_file = "oxygen_chem_setup_novib.in"
 
-    k_columns = [0,1,2] 
-    k_true_values = [7.6e-22, 3E-44, 4e-20] # WARNING: the order of the k's is too low to input into the scaler 
+    k_columns = [0,1,2,3,3] # we can repeat the same index for more than one parameter in the same reaction
+    k_true_values = [7.6e-22, 3E-44, 4e-20, 4e-20, 1e-16] # WARNING: the order of the k's is too low to input into the scaler 
     pressures = [666.66] 
-    n_simulations = 200
+    n_simulations = 5
 
     simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
     simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    simul.random_kset(k_columns, k_true_values, krange= [0.5,2])
-    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
+    simul.random_kset(k_columns, k_true_values, krange= [0.5,2], pdf_function='uniform')
+    # simul.latin_hypercube_kset(k_true_values, k_columns, krange= [0.5,2])
+
     # simul.fixed_pressure_set(pressures)
 
     # Run simulations
     simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_O2_novib_pressure_0.txt')
+    # simul.writeDataFile(filename='datapoints_O2_novib_pressure_0.txt')

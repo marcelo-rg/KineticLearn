@@ -41,9 +41,9 @@ e + O2(+,X) -> 2O(3P)                                     | powerElectronTemp   
 e + O2(+,X) -> O(3P) + O(1D)                              | powerElectronTemp              | 1.95e-13*(300*1.38064852e-23/1.6021766208e-19)^0.7, -0.7 | 5
                                                                                            
 %---- neutral species collisions ----                                                      
-O2(a1Dg) + O(3P) -> O2(X) + O(3P)                         | constantRateCoeff              | 7.6e-22                                                  | 0.98      % previous: 7E-23
-O2(a1Dg) + O(3P) + O2(X) -> O2(X) + O(3P) + O2(X)         | constantRateCoeff              | 3E-44                                                    | 0.98      % new reaction from O V Braginskiy 2005. rateCoeff:1-3E-44
-O2(b1Sg+) + O(3P) -> O2(a1Dg) + O(3P)                     | constantRateCoeff              | 4e-20                                                    | 1.63-0.98 
+O2(a1Dg) + O(3P) -> O2(X) + O(3P)                         | constantRateCoeff              | 7.59593006e-22                                                  | 0.98      % previous: 7E-23
+O2(a1Dg) + O(3P) + O2(X) -> O2(X) + O(3P) + O2(X)         | constantRateCoeff              | 2.99827165e-44                                                    | 0.98      % new reaction from O V Braginskiy 2005. rateCoeff:1-3E-44
+O2(b1Sg+) + O(3P) -> O2(a1Dg) + O(3P)                     | constantRateCoeff              | 4.00183879e-20                                                    | 1.63-0.98 
 O2(b1Sg+) + O(3P) -> O2(X) + O(3P)                        | arrheniusSumGasTemp            | 4e-20, 1e-16, -3700                                      | 1.63      % MSU collisional+reactive quenching 1e-16; previous: constant coeff 4e-20
 O2(b1Sg+) + O(3P) -> O2(X) + O(1D)                        | modifiedArrheniusGasTemp       | 3.39E-17*300^0.1, -0.1, -4201                            | 1.63-4.55 % MSU quenching from Booth 2022. Original reference: Zinn 1982
 O(3P) + O(1D) -> O(3P) + O(3P)                            | constantRateCoeff              | 8e-18                                                    | 4.55-2.58

@@ -3,6 +3,7 @@ import matlab.engine
 import os
 import re
 import SamplingMorrisMethod as morris
+from scipy.stats import qmc 
 np.random.seed(10) # Recover reproducibility
 
 #-----------------------------------------------------------------------------------------------------
@@ -18,29 +19,68 @@ class Parameters():
         self.electDensity_set  = None
     
     # protect these methods
+    def latin_hypercube_kset(self, k, kcolumns=None, krange=[1, 10], log_uniform=False):
+        if k is None:
+            print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
+            exit()
+
+        k_size = len(k)
+        self.kcolumns = kcolumns
+        self.k_set = np.full((self.n_points, k_size), k)
+
+        sampler = qmc.LatinHypercube(d=len(self.kcolumns), seed=10)
+        array_random = sampler.random(n=self.n_points).T
+
+        if log_uniform:
+            # Transform to log-uniform scale
+            array_random = np.exp(np.log(krange[0]) + array_random * (np.log(krange[1]) - np.log(krange[0])))
+        else:
+            # Rescale to the desired linear range
+            array_random = (krange[1] - krange[0]) * array_random + krange[0]
+
+        for (idx, item) in enumerate(kcolumns):
+            self.k_set[:, item] = array_random[idx] * k[item]
+
+        return self.k_set
+    
+
+
     def morris_kset(self, k , p, r, k_range_type, k_range, kcolumns):
         if k is None:
             print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
             exit()
 
         self.k_set =  morris.MorrisSampler(k, p, r, k_range_type, k_range, indexes= kcolumns)
+        return self.k_set
 
 
-    def random_kset(self, k ,kcolumns = None, krange= [1,10]): 
+    def random_kset(self, k, kcolumns=None, krange=[1, 10], pdf_function='uniform'):
         if k is None:
             print('\nError: k is not defined. Please define k fixed values in the chem file or do not call gen k_set methods')
             exit()
-        array_random = np.random.uniform(krange[0], krange[1], size = (k.size, self.n_points))
+
+        # In case we use log uniform distribution
+        def loguniform(low=0, high=1, size=None, base=np.e):
+                return np.power(base, np.random.uniform(np.emath.logn(base,low), np.emath.logn(base,high), size))
         
-        if kcolumns is None:
-            # use all colunms
-            kcolumns = np.arange(k.size)
-        else:
-            # create an k_set full of the constant values in k
-            self.k_set = np.full((self.n_points, k.size), k)
+        k_size = len(k)
+        self.kcolumns = kcolumns
+        self.k_set = np.full((self.n_points, k_size), k)
+
+        if pdf_function == 'uniform':
+            array_random = np.random.uniform(krange[0], krange[1], size=(k_size, self.n_points))
+        elif pdf_function == 'log':
+            array_random = loguniform(krange[0], krange[1], size=(k_size, self.n_points))
+        # Add more distribution options here if needed
+        else: 
+            print('\nError: random_kset(): pdf_function is incorrect. Please choose between \'uniform\' and \'log\'')
+            exit()
+
 
         for (idx, item) in enumerate(kcolumns):
-            self.k_set[:,item] = array_random[idx]*k[item]
+            self.k_set[:, item] = array_random[idx] * k[item]
+
+        return self.k_set
 
     def fixed_kset(self, k):
         k_set = []
@@ -91,18 +131,35 @@ class Simulations():
         self.parameters = Parameters(npoints)
 
         self._generateChemFiles= False
-        # self.setup_file = setup_file
+        self.setup_file = setup_file
+        self.chem_file = chem_file
         self.outptFolder = chem_file[:-5]
         # create input folder if does not exist
         dir = self.loki_path+ '\\Code\\Input\\'+self.outptFolder
         if not os.path.exists(dir):
             os.makedirs(dir)
 
+        
+    def latin_hypercube_kset(self, kcolumns, krange):
+        # read the k values from the chem file (to be used in the latin_hypercube_kset method)
+        if self._generateChemFiles:
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file :
+                values = []
+                for line in file:
+                    values.append(line.split()[-2])
+            # create a numpy array with the k values of type float
+            k = np.array(values)
+            k = k.astype(float)
+        else:
+            k= None
+
+        self.parameters.latin_hypercube_kset(k, kcolumns, krange)
+
 
     def morris_kset(self, p, r, k_range_type, k_range, kcolumns=None):
         # read the k values from the chem file (to be used in the morris_kset method)
         if self._generateChemFiles:
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file :
                 values = []
                 for line in file:
                     values.append(line.split()[-2])
@@ -114,10 +171,10 @@ class Simulations():
 
         self.parameters.morris_kset(k, p, r, k_range_type, k_range, kcolumns)
 
-    def random_kset(self, kcolumns = None, krange= [1, 10]): 
+    def random_kset(self, kcolumns = None, krange= [1, 10], pdf_function='uniform'): 
         # read the k values from the chem file (to be used in the random_kset method)
         if self._generateChemFiles:
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file :
                 values = []
                 for line in file:
                     values.append(line.split()[-2])
@@ -127,7 +184,7 @@ class Simulations():
         else:
             k= None
 
-        self.parameters.random_kset(k , kcolumns, krange)
+        self.parameters.random_kset(k , kcolumns, krange, pdf_function)
 
     def fixed_kset(self, k):
         self.parameters.fixed_kset(k)
@@ -156,7 +213,7 @@ class Simulations():
             exit()
 
         # Read in the example file
-        with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file :  
+        with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file :  
             lines = []
             for line in file:
                 lines.append(line.strip())
@@ -181,7 +238,7 @@ class Simulations():
 
     def _genSetupFiles(self):
         # Read in the example file
-        with open(self.cwd + '\\simulFiles\\' + setup_file, 'r') as file :
+        with open(self.cwd + '\\simulFiles\\' + self.setup_file, 'r') as file :
             setup_data = file.read() # (for the setup files we dont need to separate the string in lines)
         
         # Then replace for all self.parameters 
@@ -204,7 +261,7 @@ class Simulations():
                 setup_data = re.sub(r'electronDensity: \d+.\d+', 'electronDensity: ' + "{:.4f}".format(self.parameters.electDensity_set[j]), setup_data)
 
             # Write out the setUp files
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+setup_file[:-3]+'_' +str(j)+'.in', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+self.setup_file[:-3]+'_' +str(j)+'.in', 'w')
             outfile.write(setup_data)
             outfile.close()
 
@@ -236,11 +293,11 @@ class Simulations():
         if self._generateChemFiles:
             self._genChemFiles()
         else:
-            print('\nChemistry files are not generated. The following file is used for all simulations: ' + chem_file)
+            print('\nChemistry files are not generated. The following file is used for all simulations: ' + self.chem_file)
             # read the example file and write it to the input folder
-            with open(self.cwd + '\\simulFiles\\' + chem_file, 'r') as file:
+            with open(self.cwd + '\\simulFiles\\' + self.chem_file, 'r') as file:
                 chemFiledata = file.read()
-            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+chem_file[:-5] +'.chem', 'w')
+            outfile = open(self.loki_path+ '\\Code\\Input\\'+self.outptFolder+'\\'+self.chem_file[:-5] +'.chem', 'w')
             outfile.write(chemFiledata)
             outfile.close()
 
@@ -250,7 +307,7 @@ class Simulations():
         #--------------------------------------Run the matlab script---------------------#
         outfile = open(self.loki_path + "\\loop_config.txt", 'w')
         outfile.write(str(self.nsimulations)) # save nsimul for matlab script
-        outfile.write("\n"+ self.outptFolder+'\\'+setup_file[:-3]+'_') # save output folder name for matlab script
+        outfile.write("\n"+ self.outptFolder+'\\'+self.setup_file[:-3]+'_') # save output folder name for matlab script
         outfile.close()
         os.chdir(self.loki_path+ "\\Code") # First change the working directory so that the relatives paths of loki work
         eng = matlab.engine.start_matlab()
@@ -307,6 +364,27 @@ class Simulations():
 
 if __name__ == '__main__': 
 
+    # path to LoKI
+    loki_path = "D:\\Marcelo" + '\\LoKI_v3.1.0'
+    
+    # Definition of reaction scheme and setup files
+    chem_file = "O2_simple_1.chem" 
+    setup_file = "setup_O2_simple.in"
+
+    k_columns = [0,1,2] # if None, changes all columns
+    n_simulations = 10
+
+    simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
+    simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
+    simul.random_kset(kcolumns= k_columns, krange= [0.5,2], pdf_function='uniform') # [0.5,2] range used in the Nsurrogates model
+    # simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
+    # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
+    # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
+    # print( simul.parameters.k_set.shape)
+    # Run simulations
+    simul.runSimulations()
+    simul.writeDataFile(filename='O2_simple_uniform.txt')
+
     # # path to LoKI
     # loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
     
@@ -315,37 +393,16 @@ if __name__ == '__main__':
     # setup_file = "setup_O2_simple.in"
 
     # k_columns = [0,1,2] # if None, changes all columns
-    # n_simulations = 3000
+    # pressures = [666.66] # P0, P1, P2, ... (in Pa)
+    # n_simulations = 1
 
     # simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    # simul.set_ChemFile_ON() # turn off/on for fixed/changing values of k's
-    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
-    # # simul.morris_kset(p= 1000, r= 700, k_range_type= "lin", k_range= [1,10], kcolumns= k_columns)
-    # # simul.random_pressure_set(pressure= 133.322, pressure_range=[0.1,10]) # 1 Torr = 133.322 Pa
-    # # simul.random_radius_set(radius= 4e-3, radius_range=[1,5]) # [4e-3, 2e-2] 
-    # # print( simul.parameters.k_set.shape)
+    # simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
+    # k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53])
+    # simul.fixed_kset(k)
+    # # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
+    # # simul.fixed_pressure_set(pressures)
+
     # # Run simulations
     # simul.runSimulations()
-    # simul.writeDataFile(filename='datapoints_pressure_1.txt')
-
-    # path to LoKI
-    loki_path = "C:\\Users\\clock\\Desktop" + '\\LoKI_v3.1.0'
-    
-    # Definition of reaction scheme and setup files
-    chem_file = "O2_simple_1.chem" 
-    setup_file = "setup_O2_simple.in"
-
-    k_columns = [0,1,2] # if None, changes all columns
-    pressures = [666.66] # P0, P1, P2, ... (in Pa)
-    n_simulations = 1
-
-    simul = Simulations(setup_file, chem_file, loki_path, n_simulations)
-    simul.set_ChemFile_OFF() # turn off/on for fixed/changing values of k's
-    k = np.array([6E-16,1.3E-15,9.6E-16,2.2E-15,7E-22,3E-44,3.2E-45,5.2,53])
-    simul.fixed_kset(k)
-    # simul.random_kset(kcolumns= k_columns, krange= [0.5,2]) # [0.5,2] range used in the Nsurrogates model
-    # simul.fixed_pressure_set(pressures)
-
-    # Run simulations
-    simul.runSimulations()
-    simul.writeDataFile(filename='datapoints_mainNet_P_666.66_true.txt')
+    # simul.writeDataFile(filename='O2_simple_uniform.txt')

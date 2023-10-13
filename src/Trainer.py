@@ -154,8 +154,8 @@ class NSurrogatesModelTrainer:
         train_dataset, val_dataset = random_split(main_dataset, [train_size, val_size])
 
         # Create dataloaders
-        train_dataloader = DataLoader(train_dataset, batch_size=1000, shuffle=False)
-        val_dataloader = DataLoader(val_dataset, batch_size=1000, shuffle=False)
+        train_dataloader = DataLoader(train_dataset, batch_size=20, shuffle=True)
+        val_dataloader = DataLoader(val_dataset, batch_size=20, shuffle=True)
 
         main_model = self.model.main_net
 
@@ -169,11 +169,11 @@ class NSurrogatesModelTrainer:
         for epoch in range(pretrain_epochs):
             epoch_loss = 0.0
             for x_batch,y_batch in train_dataloader:
+                self.optimizer.zero_grad()
                 output = main_model(y_batch.flatten(start_dim=1))
                 loss = loss_func(output, x_batch[:,0,:])
                 epoch_loss += loss.item()
 
-                self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
             
