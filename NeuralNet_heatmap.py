@@ -1,12 +1,11 @@
 import json
-import os
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
+# folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
 
 # Best hyperparameters: lr=0.0001, batch_size=16, hidden_size=(20, 20), activation_function=tanh, MSE: 6.111129550845362e-06
 # The search space:
@@ -81,5 +80,5 @@ ax.set_ylabel(r'\(\mathbf{Hidden Size}\)', fontsize=14)
 # Adjust the margins
 plt.subplots_adjust(left=0.083, right=0.9)
 plt.tight_layout()
-plt.savefig(folder_path+ 'NeuralNet_heatmap.pdf', bbox_inches='tight')
+# plt.savefig(folder_path+ 'NeuralNet_heatmap.pdf', bbox_inches='tight')
 plt.show()

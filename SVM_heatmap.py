@@ -5,7 +5,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
 import numpy as np
 
-folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
+# folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
 
 
 # Enable LaTeX formatting and set global font size
@@ -86,6 +86,6 @@ for ax in axes[1:]:
 # Adjust the margins
 plt.subplots_adjust(left=0.083, right=1.03)
 plt.tight_layout()
-# plt.show()
+plt.show()
 # plt.savefig(folder_path + 'SVM_heatmap.pdf')
-plt.savefig(folder_path + 'SVM_heatmap_zoom.pdf') # FOR ZOOM PLOT
+# plt.savefig(folder_path + 'SVM_heatmap_zoom.pdf') # FOR ZOOM PLOT

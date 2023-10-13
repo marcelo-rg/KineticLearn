@@ -10,7 +10,7 @@ from src.config import dict as dictionary
 
 folder_path = "D:\\Marcelo\\github\\Dissertation\\Images\\"
 
-# Define the LoadMultiPressureDatasetNumpy class as provided
+# Class to load the dataset to be used with numpy
 class LoadMultiPressureDatasetNumpy:
     def __init__(self, src_file, nspecies, num_pressure_conditions, react_idx=None, m_rows=None, columns=None,
                  scaler_input=None, scaler_output=None):
@@ -86,7 +86,8 @@ def create_split_histograms(features_1Torr, features_10Torr, species):
         ax[1].set_ylabel('Frequency')
         
         plt.tight_layout()
-        plt.savefig(folder_path + f'histogram_{i}.pdf')
+        plt.show()
+        # plt.savefig(folder_path + f'histogram_{i}.pdf')
         plt.close(fig)  # Close the figure to free up memory
 
 
@@ -161,8 +162,8 @@ def create_correlation_heatmaps(features_1Torr, features_10Torr, species, figure
     ax1.set_title('Correlation Heatmap at 10 Torr')
     
     plt.tight_layout()
-    plt.savefig(folder_path + 'correlations_heatmap.pdf')
-    # plt.show()
+    # plt.savefig(folder_path + 'correlations_heatmap.pdf')
+    plt.show()
 
 
 
